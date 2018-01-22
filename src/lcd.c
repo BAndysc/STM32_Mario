@@ -76,6 +76,8 @@ void Rescale()
 extern uint32_t TICKS;
 uint32_t PREVIOUS_TICKS;
 
+bool ShouldDraw = false;
+
 #define LINES 20
 void DidSent(void* data) {
 	LCDt* lcd = (LCDt*)data;
@@ -84,14 +86,12 @@ void DidSent(void* data) {
 	{
 		lcd->currentLine = 0;
         AfterRender();
-        ///uint32_t diff = TICKS - PREVIOUS_TICKS;
-        ///UartSendInt((1000/diff));
-        ///UartSend("\r\n");
-        ///PREVIOUS_TICKS = TICKS;
-        Debug("het\r\n");
+        uint32_t diff = TICKS - PREVIOUS_TICKS;
+        //DebugInt((1000/diff));
+        //Debug("\r\n");
+        PREVIOUS_TICKS = TICKS;
 	}
-	lcd->renderer(lcd, lcd->buffer, lcd->currentLine, LINES, lcd->width);
-	lcd->spi.writeAsync(&lcd->spi, (char*)lcd->buffer, lcd->width * LINES);
+	ShouldDraw = true;
 }
 
 /*void LCDsetRectangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
@@ -267,7 +267,7 @@ void InitLCD(LCDt* lcd, uint16_t width, uint16_t height, Pin mosi, Pin miso, Pin
     PinConfigureOut(reset, GPIO_OType_PP, GPIO_High_Speed, GPIO_PuPd_NOPULL);
 
 	SPI_Configuration configuration;
-	configuration.BaudRatePrescaler = SPI_BAUD_DIV4;
+	configuration.BaudRatePrescaler = SPI_BAUD_DIV2;
 	configuration.BidiMode = SPI_BIDI_MODE_1_LINE_BI;
 	configuration.Direction = SPI_TRANSMIT_ONLY;
 	configuration.ByteOrder = SPI_MOST_SIG_BYTE_FIRST;

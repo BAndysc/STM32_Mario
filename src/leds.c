@@ -2,15 +2,11 @@
 #include <stm32.h>
 #include "leds.h"
 
-
 Led Leds[__LEDS];
 
 static void ConfigureLed(LedType led, Pin pin, LedMode mode)
 {
-	PinConfigureOut(pin,
-		GPIO_OType_PP,
-		GPIO_Low_Speed,
-		GPIO_PuPd_NOPULL);	
+	PinConfigureOut(pin, GPIO_OType_PP, GPIO_Low_Speed, GPIO_PuPd_NOPULL);	
 
 	Leds[led].mode = mode;
 	Leds[led].pin = pin;

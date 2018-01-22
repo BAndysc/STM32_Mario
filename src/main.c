@@ -28,8 +28,6 @@ extern int INPUT_ANALOG;
 
 void myReadHandler(void* data, char* recv, uint8_t len)
 {
-	serial.write(&serial, recv);
-
 	switch (recv[0])
 	{
 		case 't':
@@ -60,10 +58,14 @@ uint8_t JOYSTICK[2];
 
 bool shouldUpdate = true;
 
+extern bool ShouldDraw;
+
 void timeToUpdate()
 {
 	shouldUpdate = true;
 }
+
+extern int32_t TICKS;
 
 int main() 
 {
@@ -73,6 +75,7 @@ int main()
 
 	InitUsart(&serial, PA_2, PA_3, 9600U, UART_LENGTH_8b, UART_PARITY_NO, UART_STOP_BITS_1);
 	UsartSetReadHandler(&serial, 1, myReadHandler, NULL);
+	DebugSetUsart(&serial);
 	serial.write(&serial, "Hellw!\r\n");
 
 	//InitUart(9600U, UART_LENGTH_8b, UART_PARITY_NO, UART_STOP_BITS_1);
@@ -83,7 +86,7 @@ int main()
 
 	InitGame();
 
-	SetTimerHandler(upd);//timeToUpdate);
+	SetTimerHandler(timeToUpdate);
 	InitTimer4();
 	InitTimer3();
 
@@ -101,13 +104,21 @@ int main()
 		for (int i = 0; i < 1000000; ++i);
 
 	}*/
-
+	int32_t lastDraw = 0;
 	while (1)
 	{
 		if (shouldUpdate)
 		{
 			shouldUpdate = false;
 			upd();
+		}
+
+		if (ShouldDraw && (TICKS - lastDraw) >= 4)
+		{
+			lastDraw = TICKS;
+			ShouldDraw = false;
+			lcd.renderer(&lcd, lcd.buffer, lcd.currentLine, 20, lcd.width);
+			lcd.spi.writeAsync(&(lcd.spi), (char*)lcd.buffer, lcd.width * 20);
 		}
 	}
 

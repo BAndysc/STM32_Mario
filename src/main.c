@@ -103,6 +103,29 @@ static void RequestLine(LCDt* lcd, uint16_t* buffor, uint16_t startLine, uint16_
     ShouldDraw = true;
 }
 
+static void MainLoop()
+{
+    int32_t lastDraw = 0;
+    while (1)
+    {
+        if (shouldUpdate)
+        {
+            shouldUpdate = false;
+            UpdateWorldLoop();
+        }
+
+        if (ShouldDraw && (TICKS - lastDraw) >= LCD_USECS_PER_LINE)
+        {
+            lastDraw = TICKS;
+            ShouldDraw = false;
+            RenderLine(&lcd, lcd.buffer, lcd.currentLine, 20, lcd.width);
+            lcd.spi.writeAsync(&(lcd.spi), (char*)lcd.buffer, lcd.width * 20);
+        }
+
+        SleepAndWaitForInterrupts();
+    }
+}
+
 int main()
 {
     Turn100MHzClock();
@@ -119,24 +142,5 @@ int main()
 
     InitILI9341LCD(&lcd, 320, 240, PA_7, PA_6, PA_5, PD_2, PC_11, PC_12, &RequestLine);
 
-    int32_t lastDraw = 0;
-    while (1)
-    {
-        if (shouldUpdate)
-        {
-            shouldUpdate = false;
-            UpdateWorldLoop();
-        }
-
-        if (ShouldDraw && (TICKS - lastDraw) >= 37)
-        {
-            lastDraw = TICKS;
-            ShouldDraw = false;
-            RenderLine(&lcd, lcd.buffer, lcd.currentLine, 20, lcd.width);
-            lcd.spi.writeAsync(&(lcd.spi), (char*)lcd.buffer, lcd.width * 20);
-        }
-
-        SleepAndWaitForInterrupts();
-    }
-
+    MainLoop();
 }

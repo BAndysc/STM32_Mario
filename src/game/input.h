@@ -18,4 +18,7 @@ extern Vectorf input;
 
 void UpdateInput();
 
+int StartTicks;
+
+extern int32_t TICKS;
 #endif

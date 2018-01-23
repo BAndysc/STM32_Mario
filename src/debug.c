@@ -5,13 +5,13 @@ USARTt* debugUsart;
 void Debug(char* string)
 {
     if (debugUsart != nullptr)
-        debugUsart->writeSync(debugUsart, string);
+        debugUsart->write(debugUsart, string);
 }
 
 void DebugInt(int32_t val)
 {
     if (debugUsart != nullptr)
-        debugUsart->writeIntSync(debugUsart, val);
+        debugUsart->writeInt(debugUsart, val);
 }
 
 void DebugSetUsart(USARTt* usart)
@@ -21,6 +21,7 @@ void DebugSetUsart(USARTt* usart)
 
 void Abort(char* msg)
 {
-    Debug(msg);
+    if (debugUsart != nullptr)
+        debugUsart->writeSync(debugUsart, msg);
     __BKPT(0);
 }

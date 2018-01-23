@@ -152,6 +152,8 @@ void up(GameObject* go, float delta)
 
     if (IsOver(go, NewVector((int32_t)go->Position.x+2, (int32_t)go->Position.y-3), NewVector(16-4, 3)) == (GameObject*)&mario)
     {
+        POINTS += 1;
+
         go->Velocity.x = 0;
         go->Velocity.y = 0;
         go->Sprite = GFX.ENEMY_1_DEAD;
@@ -258,6 +260,9 @@ void UpdateWorldLoop()
 }
 
 void Start() {
+    StartTicks = TICKS;
+    POINTS = 0;
+
     for (int i = 0; i < level->width; ++i)
     {
         for (int j = 0; j < level->height; ++j)

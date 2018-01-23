@@ -14,7 +14,7 @@ Mario mario;
 GameObject ObjectsStore[MAX_OBJECTS];
 
 GameObject* RenderObjects[1000];
-GameObject* UpdateLoop[100];
+GameObject* UpdateLoop[200];
 GameObject* Colliders[1000];
 int ObjectsUpdateCounter;
 int ObjectsCounter;
@@ -27,5 +27,7 @@ void RemoveObjectFromStore(GameObject* object);
 void ClearStore();
 
 GameObject* GetNewObject();
+
+int POINTS;
 
 #endif

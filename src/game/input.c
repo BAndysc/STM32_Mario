@@ -8,6 +8,8 @@ int INPUT_JUMP;
 int INPUT_ANALOG = 1;
 Vectorf input;
 
+int StartTicks;
+
 void UpdateInput()
 {
     if (INPUT_UP)

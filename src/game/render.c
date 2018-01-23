@@ -1,7 +1,11 @@
+#include <fonts.h>
 #include "render.h"
 #include "gfx.h"
 #include "gameobject.h"
 #include "store.h"
+#include "input.h"
+#include "levels.h"
+#include "../debug.h"
 
 int SCALE = 2;
 #define INV(A) (A); //((A >> 8) | ((A & 0xFF) << 8))
@@ -53,6 +57,7 @@ static void DrawObject(GameObject* go, uint16_t buffer[], int16_t lines, int16_t
 }
 
 
+char text[35];
 //uint16_t sky[] = {61407, 61375, 59327, 59327, 59327, 57247, 57247, 57247, 55199, 55199, 55167, 53119, 53119, 53119, 51071, 51039, 51039, 48991, 48991, 48991, 46911, 46911, 46911, 44863, 44831, 44831, 44831, 42783, 42783, 42751};
 uint16_t sky[] = {21620, 21620, 21620, 21620,21620,21620, 23733, 25846, 27959, 30072, 32185, 34298, 36411, 38524, 40637, 42750, 44863, 46975, 49087, 51199,51199,51199,51199,51199,51199,51199};
 
@@ -86,6 +91,60 @@ void RenderLine(LCDt* lcd, uint16_t buffer[], int16_t startLine, int16_t lines, 
 
         if (ObjectInViewport(go, lines, startLine, width) && !go->Deactive)
             DrawObject(go, buffer, lines, startLine, width);
+    }
+
+    if (startLine == 0 || startLine == 10)
+    {
+        char* ptr;
+
+        if (startLine == 0)
+        {
+            ptr = "MARIO      POINTS              TIME";
+        }
+        else
+        {
+            int32_t left = level->time - (TICKS - StartTicks) / 10000;
+            for (int i = 0; i <35; ++i)
+                text[i] = ' ';
+            text[34] = (left)%10 + '0';
+            text[33] = ((left / 10)%10) + '0';
+            text[32] = ((left / 100)%10) + '0';
+
+            text[3] = 'x';
+            text[4] = '5';
+
+            text[16] = (POINTS)%10 + '0';
+            text[15] = ((POINTS / 10)%10) + '0';
+            text[14] = ((POINTS / 100)%10) + '0';
+
+            ptr = text;
+        }
+
+
+        int offset = 20;
+        int offsetY = 4;
+
+        for (int c = 0; c < 35; ++c)
+        {
+            char letter = ptr[c];
+
+            uint16_t const *p = &font8x16.table[(letter - FIRST_CHAR) * font8x16.height];
+            for (int i = 0; i < font8x16.height; ++i)
+            {
+                for (int j = 0, w = p[i]; j < font8x16.width; ++j, w >>= 1)
+                {
+                    if (w&1)
+                    {
+                        buffer[(i+offsetY) * width * SCALE + (j+offset)] = 0x0000;
+                        //buffer[i * width * SCALE * SCALE + (j+offset) * SCALE + 1] = 0xFFFF;
+                        //buffer[i * width * SCALE * SCALE + (j+offset) * SCALE + width*2] = 0x0000;
+                        ///buffer[i * width * SCALE * SCALE + (j+offset)*SCALE + 1 + width*2] = 0x0000;
+                    }
+                }
+            }
+
+            offset += font8x16.width;
+        }
     }
 
 }

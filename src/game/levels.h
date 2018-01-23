@@ -4,6 +4,7 @@
 typedef struct {
     int width;
     int height;
+    int time;
     char* data;
 } Level;
 

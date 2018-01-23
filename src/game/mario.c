@@ -28,23 +28,22 @@ GameObject* IsOver(void* skip, Vector pos, Vector size)
 
 GameObject* IsOverType(void* skip, Vector pos, Vector size, uint8_t type)
 {
-    for (int i = 0; i < ObjectsColliderCounter; ++i)
+    for (int i = 0; i < ObjectsCounter; ++i)
     {
-        if (Colliders[i] == skip || Colliders[i]->Type != type || Colliders[i]->Deactive)
+        if (RenderObjects[i] == skip || RenderObjects[i]->Type != type || RenderObjects[i]->Deactive)
             continue;
-        if (IsOverlapingPos(pos, size, Colliders[i]))
-            return Colliders[i];
+        if (IsOverlapingPos(pos, size, RenderObjects[i]))
+            return RenderObjects[i];
     }
 
     return 0;
 }
 
-static void UpdateCollision(Mario* this, float delta)
-{
+static void UpdateCollision(Mario* this, float delta) {
     if (this->Dead)
         return;
 
-    GameObject* super = &this->super;
+    GameObject *super = &this->super;
 
     if (super->Velocity.y > 10)
         super->Velocity.y = 10;
@@ -52,18 +51,21 @@ static void UpdateCollision(Mario* this, float delta)
     Vectorf new = VectorffAdd(super->Position, super->Velocity);
     Vector nnew = Vectorf2Vector(new);
 
-    this->Grounded = IsOver(&mario, NewVector(nnew.x, nnew.y+15), NewVector(16, 1)) != 0;
+    this->Grounded = IsOver(&mario, NewVector(nnew.x, nnew.y + 15), NewVector(16, 1)) != 0;
 
     if (this->Grounded && super->Velocity.y > 0)
         super->Velocity.y = 0;
 
-    GameObject* roofed = IsOver(&mario, NewVector(nnew.x + 5, nnew.y-1), NewVector(5, 1));
+    GameObject *roofed = IsOver(&mario, NewVector(nnew.x + 5, nnew.y - 1), NewVector(5, 1));
 
     if (roofed && super->Velocity.y < 0)
         super->Velocity.y = 0;
 
     if (roofed && roofed->Type == 3)
+    {
         roofed->Type = 4;
+        POINTS += 10;
+    }
 
     GameObject* rightcol = IsOver(&mario, NewVector(nnew.x + 16, nnew.y), NewVector(1, 15));;
 
@@ -87,6 +89,7 @@ static void UpdateCollision(Mario* this, float delta)
     GameObject* over = IsOverType(&mario, NewVector(nnew.x, nnew.y), mario.super.Size, 2);
     if (over)
     {
+        POINTS += 50;
         over->Deactive = 1;
         Debug("c");
     }

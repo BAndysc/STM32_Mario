@@ -1,6 +1,7 @@
 #include "interrupts.h"
 #include <gpio.h>
 #include "irq.h"
+#include "debug.h"
 #include <stm32.h>
 
 InterruptDataArray InterruptHandlers[INTERRUPT_MAX];
@@ -359,7 +360,7 @@ void AddInterruptHandlerManualBit(InterruptType interrupt, uint32_t checkBit, ui
 	InterruptDataArray* array = &InterruptHandlers[interrupt];
 
 	if (array->size == MAX_INTERRUPTS)
-		return; // cannot accept more interrupt handlers
+		Abort("Maximum number of interrypt handlers added! Aborting.");
 
 	array->handlers[array->size].handler = handler;
 	array->handlers[array->size].data = data;

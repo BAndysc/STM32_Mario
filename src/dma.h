@@ -6,6 +6,19 @@
 #include <stm32.h>
 #include "interrupts.h"
 
+/*
+
+========
+= DMAt =
+========
+
+
+Interfejs do obsługi DMA. Możliwość przesyłu danych w dwie strony:
+ Master -> Peripherial, Peripherial -> Master. Obsługiwana różna wielkość paczek,
+ prosty callback po zakończeniu transmisji.
+
+*/
+
 typedef enum 
 {
 	DMA_TRANSFER_SIZE_BYTE,

@@ -253,7 +253,7 @@ void InitMonster(GameObject* go, int x, int y)
 	go->Velocity = NewVectorf(-0.7f, 0);
 }
 
-void upd()
+void UpdateWorldLoop()
 {
 	loop(10);
 }

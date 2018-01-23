@@ -4,6 +4,8 @@
 #include "device.h"
 #include "debug.h"
 
+#define ADC_SQRx_BITS_PER_CHANNEL 5
+
 static void SetupADC(ADCt* adc, ADC_Configuration* configuration)
 {
     adc->Ptr->CR1 = 0;
@@ -57,18 +59,12 @@ void InitADC(ADCt* adc)
 static void InternalAddPinADC(ADCt* adc, Pin pin)
 {
     if (adc->numberOfChannels >= MAX_ADC_CHANNELS)
-    {
-        Debug("Cannot add pin to adc; too many channels used.");
-        return;
-    }
+        Abort("Cannot add pin to adc; too many channels used. Aborting!");
 
     DeviceADC device = GetADCForPin(pin);
 
     if (device.Ptr != adc->Ptr)
-    {
-        Debug("This pin doesn't belong to used ADC pointer.");
-        return;
-    }
+        Abort("This pin doesn't belong to used ADC pointer. Aborting!");
 
     PinConfigureAnalogIn(pin);
     adc->channels[adc->numberOfChannels] = device.Channel;
@@ -128,7 +124,7 @@ static void ADCConfigureChannels(ADCt* adc)
     adc->Ptr->SQR2 = 0;
     adc->Ptr->SQR3 = 0;
 
-    int8_t channelsNum = adc->numberOfChannels - 1;
+    int8_t channelsNum = (int8_t)(adc->numberOfChannels - 1);
     if (channelsNum & 1)
         adc->Ptr->SQR1 |= ADC_SQR1_L_0;
     if (channelsNum & 2)
@@ -139,8 +135,7 @@ static void ADCConfigureChannels(ADCt* adc)
         adc->Ptr->SQR1 |= ADC_SQR1_L_3;
 
     for (int i = 0; i < adc->numberOfChannels; ++i)
-        adc->Ptr->SQR3 |= adc->channels[i] << (i * 5);
-
+        adc->Ptr->SQR3 |= adc->channels[i] << (i * ADC_SQRx_BITS_PER_CHANNEL);
 }
 
 static void EnableADC(ADCt* adc)
@@ -177,5 +172,5 @@ void ADCStartContinous(ADCt* adc, ADC_RESOLUTION resolution, void* destination, 
     ADCConfigureChannels(adc);
 
     ADCStartConversion(adc);
-    adc->Dma.transmit(&adc->Dma, destination, (void*)&adc->Ptr->DR, adc->numberOfChannels);
+    adc->Dma.transmit(&adc->Dma, destination, (void*)&adc->Ptr->DR, (uint32_t)adc->numberOfChannels);
 }

@@ -5,6 +5,18 @@
 #include "pins.h"
 #include "interrupts.h"
 
+/*
+
+==========
+= Device =
+==========
+
+Uogólnienie komponentów oferowanych przez płytki STM32. Dla każdej, którą chcemy obsłużyć
+ należy stworzyć osobny plik, który zaimplementuje poniższe metody zwracając konkretne
+ wskaźniki i inne dane urządeń.
+
+*/
+
 typedef struct {
 	DMA_Stream_TypeDef* Ptr;
 	InterruptType Interrupt;

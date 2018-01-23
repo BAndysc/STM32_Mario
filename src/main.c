@@ -13,8 +13,6 @@
 #include "debug.h"
 #include "ILI9341.h"
 
-extern int INPUT_JUMP;
-
 void handler(Button_Event ev, void* data)
 {
 	INPUT_JUMP = (ev == BUTTON_EVENT_PRESSED) ? 1 : 0;
@@ -27,9 +25,7 @@ USARTt serial;
 Timer updateTimer;
 ADCt adc;
 
-extern int INPUT_ANALOG;
-
-void myReadHandler(void* data, char* recv, uint8_t len)
+void myReadHandler(void* data, char const* recv, uint8_t len)
 {
 	switch (recv[0])
 	{
@@ -53,6 +49,8 @@ void myReadHandler(void* data, char* recv, uint8_t len)
 			break;
 		case 'W':
 			INPUT_JUMP = 1;
+			break;
+		default:
 			break;
 	}
 }
@@ -129,20 +127,13 @@ int main()
 	InitILI9341LCD(&lcd, 320, 240, PA_7, PA_6, PA_5, PD_2, PC_11, PC_12, &RequestLine);
 
 	int32_t lastDraw = 0;
-    int32_t prevSec = 0;
 	while (1)
 	{
 		if (shouldUpdate)
 		{
 			shouldUpdate = false;
-			upd();
+			UpdateWorldLoop();
 		}
-
-        if ((TICKS - prevSec) >= 10000)
-        {
-            Debug("Sek\r\n");
-            prevSec = TICKS;
-        }
 
         if (ShouldDraw && (TICKS - lastDraw) >= 32)
 		{

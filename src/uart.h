@@ -57,12 +57,12 @@ typedef struct USARTt
 
     void (*writeSync)(struct USARTt* usart, char* string);
 
-	void (*readHandler)(void* data, char* recv, uint8_t len);
+	void (*readHandler)(void* data, char const* recv, uint8_t len);
 	void* data;
 	uint8_t packSize;
 } USARTt;
 
 bool InitUsart(USARTt* usart, Pin tx, Pin rx, uint32_t baudrate, UartLength len, UartParity parity, UartStopBits stop);
-void UsartSetReadHandler(USARTt* usart, uint8_t packSize, void (*handler)(void* data, char* recv, uint8_t len), void* data);
+void UsartSetReadHandler(USARTt* usart, uint8_t packSize, void (*handler)(void* data, char const* recv, uint8_t len), void* data);
 
 #endif

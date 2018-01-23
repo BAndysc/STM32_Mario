@@ -180,7 +180,7 @@ bool InitUsart(USARTt* usart, Pin tx, Pin rx, uint32_t baudrate, UartLength len,
 	return true;
 }
 
-void UsartSetReadHandler(USARTt* usart, uint8_t packSize, void (*handler)(void* data, char* recv, uint8_t len), void* data)
+void UsartSetReadHandler(USARTt* usart, uint8_t packSize, void (*handler)(void* data, char const* recv, uint8_t len), void* data)
 {
 	usart->readHandler = handler;
 	usart->data = data;

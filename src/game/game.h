@@ -10,7 +10,7 @@
 #include "store.h"
 #include "render.h"
 
-extern void upd();
+extern void UpdateWorldLoop();
 extern void InitGame();
 
 extern void ResetGame();

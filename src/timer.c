@@ -10,26 +10,6 @@ typedef struct
 	uint32_t arr;
 } TimerSettings;
 
-static TimerSettings CalculateTimerSettings(uint32_t ms, uint8_t bits)
-{
-	TimerSettings settings;
-
-	settings.arr = GetSystemCoreClock() / 1000 * ms;
-	settings.prescaler = 1;
-
-	uint32_t MAX_VAL = (uint32_t)(2 << (bits - 1)) - 1;
-
-	while (settings.arr > MAX_VAL)
-	{
-		settings.arr /= 2;
-		settings.prescaler *= 2;
-	}
-
-	settings.prescaler -= 1;
-
-	return settings;
-}
-
 
 static TimerSettings CalculateTimerSettingsUs(uint32_t us, uint8_t bits)
 {

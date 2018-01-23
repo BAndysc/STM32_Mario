@@ -5,6 +5,16 @@
 #include "dma.h"
 #include "device.h"
 
+/*
+
+==========
+= ADCt =
+==========
+
+Obsługa przetwornika analogowo-cyfrowego.
+
+*/
+
 typedef enum {
 	ADC_RESOLUTION_6,
 	ADC_RESOLUTION_8,

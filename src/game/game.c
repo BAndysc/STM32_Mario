@@ -1,5 +1,4 @@
 #include "game.h"
-#include "../buttons.h"
 #include "../adc.h"
 #include "../debug.h"
 
@@ -258,14 +257,6 @@ void UpdateWorldLoop()
 	loop(10);
 }
 
-void handler23(Button_Event type, void* data)
-{
-	if (type == BUTTON_EVENT_RELEASED)
-	{
-		newScale = SCALE == 1?2:1;
-	}
-}
-
 void Start() {
 	for (int i = 0; i < level->width; ++i)
 	{
@@ -306,8 +297,6 @@ void Start() {
 void InitGame() {
 
 	Start();
-
-	BindOnButtonEvent(BUTTON_USER, handler23, 0);
 }
 
 

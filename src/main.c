@@ -1,7 +1,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include "queue.h"
-#include "buttons.h"
 #include "uart.h"
 #include "timer.h"
 #include "lcd.h"
@@ -12,12 +11,6 @@
 #include "adc.h"
 #include "debug.h"
 #include "ILI9341.h"
-
-void handler(Button_Event ev, void* data)
-{
-	INPUT_JUMP = (ev == BUTTON_EVENT_PRESSED) ? 1 : 0;
-}
-
 
 LCDt lcd;
 Timer ticker;

@@ -36,6 +36,8 @@ static void SendNextInitializeInstruction(LCDt* lcd)
 	SetLow(lcd->A0);
 	LcdInitInstruction* instruction = &lcd->instructions[lcd->currentInitIndex];
 
+	lcd->currentInitIndex++;
+
 	switch (instruction->type)
 	{
 		case LCD_MSG_COMMAND:
@@ -51,9 +53,8 @@ static void SendNextInitializeInstruction(LCDt* lcd)
 			break;
 
 		case LCD_MSG_DELAY:
-			lcd->currentInitIndex++;
 			lcd->timer.startOnce(&lcd->timer);
-			return;
+			break;
 
 		case LCD_MSG_WIDTH:
 			lcd->SendData16(lcd, INV(lcd->width - 1));
@@ -64,7 +65,6 @@ static void SendNextInitializeInstruction(LCDt* lcd)
 			break;
 
 		case LCD_MSG_END:
-			Debug(" ");
 			lcd->initialized = true;
 			SPISetHandler(&lcd->spi, &DidSent, lcd);
 
@@ -73,8 +73,6 @@ static void SendNextInitializeInstruction(LCDt* lcd)
 			lcd->renderer(lcd, lcd->buffer, lcd->currentLine, LINES_TO_DRAW_AT_ONCE, lcd->width);
 			break;
 	}
-
-	lcd->currentInitIndex++;
 }
 
 static void AfterDelay(void* data)

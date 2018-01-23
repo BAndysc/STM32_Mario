@@ -57,7 +57,7 @@ static void UpdateCollision(Mario* this, float delta)
 	if (this->Grounded && super->Velocity.y > 0)
 		super->Velocity.y = 0;
 
-	GameObject* roofed = IsOver(&mario, NewVector(nnew.x, nnew.y-1), NewVector(16, 1));;
+	GameObject* roofed = IsOver(&mario, NewVector(nnew.x + 5, nnew.y-1), NewVector(5, 1));
 
 	if (roofed && super->Velocity.y < 0)
 		super->Velocity.y = 0;

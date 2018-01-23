@@ -1,9 +1,6 @@
-#include <delay.h>
 #include <fonts.h>
 #include <gpio.h>
 #include "lcd.h"
-#include "interrupts.h"
-#include "spi.h"
 #include "game/game.h"
 #include "debug.h"
 
@@ -88,23 +85,28 @@ void DidSentWhileInitialization(void* data)
     SendNextInitializeInstruction(lcd);
 }
 
-void DidSent(void* data) {
+void DidSent(void* data)
+{
     LCDt* lcd = (LCDt*)data;
 
     lcd->currentLine += LINES_TO_DRAW_AT_ONCE;
     if (lcd->currentLine == lcd->height)
-    {
         lcd->currentLine = 0;
-        AfterRender();
-    }
+
     lcd->renderer(lcd, lcd->buffer, lcd->currentLine, LINES_TO_DRAW_AT_ONCE, lcd->width);
 }
 
-static void InitializeLCD(LCDt* lcd) {
+static void InitializeLCD(LCDt* lcd)
+{
     SetLow(lcd->CS);
     SetHigh(lcd->CS);
 
     SendNextInitializeInstruction(lcd);
+}
+
+static void SendGeneratedLines(LCDt* lcd)
+{
+    lcd->spi.writeAsync(&(lcd->spi), (char*)lcd->buffer, lcd->width * LINES_TO_DRAW_AT_ONCE);
 }
 
 void InitLCD(LCDt* lcd, uint16_t width, uint16_t height, Pin mosi, Pin miso, Pin clock, Pin cs, Pin a0, Pin reset, LCDRenderLine requestLine, LcdInitInstruction* instructions)
@@ -123,6 +125,7 @@ void InitLCD(LCDt* lcd, uint16_t width, uint16_t height, Pin mosi, Pin miso, Pin
     lcd->SendCommand = &SendCommand;
     lcd->SendData16 = &SendData16;
     lcd->SendData8 = &SendData8;
+    lcd->SendGeneratedLines = SendGeneratedLines;
 
     lcd->renderer = requestLine;
 

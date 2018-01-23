@@ -4,8 +4,13 @@
 #include <stdint.h>
 #include "vector.h"
 
-typedef struct GameObject {
+typedef enum
+{
+    OBJECT_FLAG = 5,
+} ObjectTypes;
 
+typedef struct GameObject
+{
     uint16_t* Sprite;
 
     int FlipSprite;
@@ -35,6 +40,8 @@ typedef struct GameObject {
 
 int IsOverlaping(GameObject* o1, GameObject* o2);
 int IsOverlapingPos(Vector pos, Vector size, GameObject* o2);
+GameObject* IsOver(void* skip, Vector pos, Vector size);
+GameObject* IsOverType(void* skip, Vector pos, Vector size, uint8_t type);
 
 
 #endif

@@ -16,11 +16,8 @@ include_directories(src/includes/inc src/includes/CMSIS/Include src/includes/CMS
 add_definitions(-DSTM32F411xE)
 
 set(SOURCE_FILES
-        src/driver/delay.c
         src/driver/fonts.c
         src/driver/gpio.c
-        src/driver/lcd.c
-        src/driver/sbrk.c
         src/driver/startup_stm32_fpu.c
         src/devices/stm32f411xe.c
         src/game/game.c
@@ -45,8 +42,6 @@ set(SOURCE_FILES
         src/adc.h
         src/clock.c
         src/clock.h
-        src/buttons.c
-        src/buttons.h
         src/debug.c
         src/debug.h
         src/device.h
@@ -68,7 +63,7 @@ set(SOURCE_FILES
         src/uart.c
         src/uart.h
         src/ILI9341.c
-        src/ILI9341.h)
+        src/ILI9341.h src/game/external.c src/game/external.h src/setup.c src/setup.h src/simple_watchdog.c src/simple_watchdog.h src/game/flag.c src/game/flag.h)
 
 add_executable(mario ${SOURCE_FILES})
 

@@ -48,6 +48,7 @@ typedef struct LCDt {
     void (*SendCommand)(struct LCDt* lcd, uint8_t command);
     void (*SendData8)(struct LCDt* lcd, uint8_t data);
     void (*SendData16)(struct LCDt* lcd, uint16_t data);
+    void (*SendGeneratedLines)(struct LCDt* lcd);
 } LCDt;
 
 

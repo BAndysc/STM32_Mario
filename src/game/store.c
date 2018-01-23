@@ -7,7 +7,7 @@ Mario mario;
 
 GameObject ObjectsStore[MAX_OBJECTS];
 GameObject* Objects[1000];
-GameObject* UpdateLoop[200];
+GameObject* UpdateLoop[250];
 GameObject* Colliders[1000];
 int ObjectsUpdateCounter = 0;
 int ObjectsCounter = 0;
@@ -98,3 +98,4 @@ void ClearStore()
 }
 
 int POINTS = 0;
+int WON = 0;

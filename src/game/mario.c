@@ -1,9 +1,10 @@
 #include "mario.h"
 #include "levels.h"
 #include "gfx.h"
-#include "lcd.h"
+#include "../lcd.h"
 #include "store.h"
 #include "../debug.h"
+#include "external.h"
 
 extern Vectorf input;
 extern float G;
@@ -13,34 +14,8 @@ extern int INPUT_JUMP;
 
 extern void ResetGame();
 
-GameObject* IsOver(void* skip, Vector pos, Vector size)
-{
-    for (int i = 0; i < ObjectsColliderCounter; ++i)
-    {
-        if (Colliders[i] == skip || !Colliders[i]->Collides || Colliders[i]->Deactive)
-            continue;
-        if (IsOverlapingPos(pos, size, Colliders[i]))
-            return Colliders[i];
-    }
-
-    return 0;
-}
-
-GameObject* IsOverType(void* skip, Vector pos, Vector size, uint8_t type)
-{
-    for (int i = 0; i < ObjectsCounter; ++i)
-    {
-        if (RenderObjects[i] == skip || RenderObjects[i]->Type != type || RenderObjects[i]->Deactive)
-            continue;
-        if (IsOverlapingPos(pos, size, RenderObjects[i]))
-            return RenderObjects[i];
-    }
-
-    return 0;
-}
-
 static void UpdateCollision(Mario* this, float delta) {
-    if (this->Dead)
+    if (this->Dead || (this->Won && flag.Triggered))
         return;
 
     GameObject *super = &this->super;
@@ -83,7 +58,7 @@ static void UpdateCollision(Mario* this, float delta) {
         this->Grounded = 0;
         super->Velocity.y = -8;
         super->Collides = 0;
-        Debug("d");
+        Puts("d");
     }
 
     GameObject* over = IsOverType(&mario, NewVector(nnew.x, nnew.y), mario.super.Size, 2);
@@ -91,7 +66,14 @@ static void UpdateCollision(Mario* this, float delta) {
     {
         POINTS += 50;
         over->Deactive = 1;
-        Debug("c");
+        Puts("c");
+    }
+
+    if (IsOverType(&mario, NewVector(nnew.x, nnew.y), mario.super.Size, OBJECT_FLAG) && !mario.Won)
+    {
+        Puts("f");
+        flag.Triggered = 1;
+        mario.Won = 1;
     }
 }
 
@@ -99,14 +81,37 @@ static void UpdateMovement(Mario* this, float delta)
 {
     GameObject* super = &this->super;
 
-    if (!this->Dead)
-        super->Velocity = VectorffAdd(super->Velocity, VectorfMul(input, 1 * delta));
-    super->Velocity = VectorffAdd(super->Velocity, NewVectorf(-0.4 * super->Velocity.x * delta, delta*(super->Velocity.y < 0 ? 0.9f : 1.1f)));
-
-    if (INPUT_JUMP && this->Grounded)
+    if (super->Position.x >= level->castleX + 62 &&  !WON)
     {
-        super->Velocity.y = -8.5f;
-        Debug("j");
+        this->Won = 1;
+        WON = 1;
+    }
+
+    if (this->Won)
+    {
+        if (flag.Triggered)
+        {
+            super->Position.x = flag.super.Position.x - 14;
+            super->Position.y = flag.super.Position.y;
+        }
+        else
+        {
+            super->Velocity.x = 1;
+            super->Velocity = VectorffAdd(super->Velocity, NewVectorf(-0.4f * super->Velocity.x * delta, delta*(super->Velocity.y < 0 ? 0.9f : 1.1f)));
+        }
+    }
+    else
+    {
+        if (!this->Dead)
+            super->Velocity = VectorffAdd(super->Velocity, VectorfMul(input, 1 * delta));
+
+        super->Velocity = VectorffAdd(super->Velocity, NewVectorf(-0.4f * super->Velocity.x * delta, delta*(super->Velocity.y < 0 ? 0.9f : 1.1f)));
+
+        if (INPUT_JUMP && this->Grounded)
+        {
+            super->Velocity.y = -8.5f;
+            Puts("j");
+        }
     }
 }
 
@@ -114,14 +119,38 @@ static void UpdatePosition(Mario* this, float delta)
 {
     GameObject* super = &this->super;
 
+    if (this->Won && flag.Triggered)
+        return;
+
     super->Position = VectorffAdd(super->Position, super->Velocity);
 
     if (super->Position.y >= 200)
         ResetGame();
 }
 
+static void UpdateWalkAnimation(Mario* this, float delta)
+{
+    this->super.Sprite = GFX.MARIO_MOVE + (this->Frame * 16 * 16);
+    this->FrameTime += delta;
+    if (this->FrameTime >= 3)
+    {
+        this->Frame += 1;
+        if (this->Frame == 3)
+            this->Frame = 0;
+        this->FrameTime = 0;
+    }
+}
+
 static void UpdateAnimation(Mario* this, float delta)
 {
+    if (this->Won)
+    {
+        if (flag.Triggered)
+            this->super.Sprite = GFX.MARIO_FALL;
+        else
+            UpdateWalkAnimation(this, delta);
+        return;
+    }
     if (this->Dead)
     {
         this->super.Sprite = GFX.MARIO_DEAD;
@@ -139,15 +168,7 @@ static void UpdateAnimation(Mario* this, float delta)
         if (input.x == 0)
             this->super.Sprite = GFX.MARIO;
         else {
-            this->super.Sprite = GFX.MARIO_MOVE + (this->Frame * 16 * 16);
-            this->FrameTime += delta;
-            if (this->FrameTime >= 3)
-            {
-                this->Frame += 1;
-                if (this->Frame == 3)
-                    this->Frame = 0;
-                this->FrameTime = 0;
-            }
+            UpdateWalkAnimation(this, delta);
         }
     }
 }

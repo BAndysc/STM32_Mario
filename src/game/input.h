@@ -18,7 +18,9 @@ extern Vectorf input;
 
 void UpdateInput();
 
+void ProcessInput(char const* recv, uint8_t len);
+
 int StartTicks;
 
-extern int32_t TICKS;
+extern int32_t MilisecondsSinceStart;
 #endif

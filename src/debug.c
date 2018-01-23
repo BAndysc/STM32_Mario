@@ -23,5 +23,6 @@ void Abort(char* msg)
 {
     if (debugUsart != nullptr)
         debugUsart->writeSync(debugUsart, msg);
+
     __BKPT(0);
 }

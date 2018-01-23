@@ -11,6 +11,7 @@ typedef struct {
     uint16_t* MARIO_MOVE;
     uint16_t* MARIO_JUMP;
     uint16_t* MARIO_DEAD;
+    uint16_t* MARIO_FALL;
     uint16_t* GROUND;
     uint16_t* BLOCK;
     uint16_t* TREE_S;
@@ -23,6 +24,11 @@ typedef struct {
     uint16_t* COIN;
     uint16_t* CLOUDS;
     uint16_t* SPECIAL;
+    uint16_t* FLAG_POLE;
+    uint16_t* FLAG_TOP;
+    uint16_t* FLAG;
+    uint16_t FLAG_BG_COLOR;
+    uint16_t* CASTLE;
 } GFX_t;
 
 extern GFX_t GFX;

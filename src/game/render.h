@@ -6,7 +6,7 @@
 
 extern Vector offset;
 
-int SCALE;
+int16_t SCALE;
 
 typedef struct LCDt LCDt;
 

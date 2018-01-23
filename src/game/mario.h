@@ -12,6 +12,7 @@ typedef struct Mario {
     float FrameTime;
 
     int Dead;
+    int Won;
 } Mario;
 
 void InitMario(Mario* mario, int x, int y);

@@ -111,14 +111,14 @@ static void UsartWriteIntSync(struct USARTt* usart, int32_t num)
     InternalUsartWriteInt(usart, num, true);
 }
 
-static void UsartDmaFinishedRead(void *data)
+static void UsartDmaFinishedRead(void* data)
 {
     USARTt* usart = (USARTt*)data;
     if (usart->readHandler)
         usart->readHandler(usart->data, usart->RxBuffer, usart->packSize);
 }
 
-static void UsartDmaFinishedWrite(void *data)
+static void UsartDmaFinishedWrite(void* data)
 {
     USARTt* usart = (USARTt*)data;
     if (!QueueIsEmpty(&usart->Tx))
@@ -143,7 +143,7 @@ static void InitUsartSettings(USARTt* usart, uint32_t baudrate, UartLength len, 
 {
     usart->usart->CR1 = USART_CR1_RE | USART_CR1_TE | USART_CR1_RXNEIE | len | parity;
     usart->usart->CR2 = stop;
-    usart->usart->CR3 = USART_FlowControl_None | USART_CR3_DMAT | USART_CR3_DMAR;
+    usart->usart->CR3 = USART_FlowControl_None;
     usart->usart->BRR = (PCLK1_HZ + (baudrate / 2U)) / baudrate;
 }
 
@@ -166,17 +166,16 @@ static void ConfigureUsartDMA(USARTt* usart, DeviceUSART* device)
 
     InitDMA(&usart->dmaRx, (DMA_Number)device->DmaRX.Number, device->DmaRX.Stream, device->DmaRX.Channel, &config);
     DmaSetHandler(&usart->dmaRx, INTERRUPT_PRIORITY_HIGHEST, UsartDmaFinishedRead, usart);
+
+    usart->usart->CR3 |= USART_CR3_DMAT | USART_CR3_DMAR;
 }
 
 bool InitUsart(USARTt* usart, Pin tx, Pin rx, uint32_t baudrate, UartLength len, UartParity parity, UartStopBits stop)
 {
     DeviceUSART device = GetUSARTForPin(tx, rx);
 
-    if (device.Ptr == 0)
-    {
+    if (device.Ptr == nullptr)
         Abort("No USART on given pins!");
-        return false;
-    }
 
     usart->usart = device.Ptr;
     GPIOClockEnableUSART(device.Ptr);

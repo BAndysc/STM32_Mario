@@ -6,6 +6,8 @@
 
 #define MICROSECONDS_IN_SECOND 1000000
 
+#define MAX_INT_IN_BITS_VALUE(A) ((uint32_t)(2 << (A - 1)) - 1)
+
 typedef struct
 {
     uint32_t prescaler;
@@ -20,7 +22,7 @@ static TimerSettings CalculateTimerSettingsUs(uint32_t us, uint8_t bits)
     settings.arr = GetSystemCoreClock() / MICROSECONDS_IN_SECOND * us;
     settings.prescaler = 1; // let's start with no prescaler (PSC = 0)
 
-    uint32_t MAX_VAL = (uint32_t)(2 << (bits - 1)) - 1;
+    uint32_t MAX_VAL = MAX_INT_IN_BITS_VALUE(bits);
 
     while (settings.arr > MAX_VAL)
     {
@@ -28,7 +30,10 @@ static TimerSettings CalculateTimerSettingsUs(uint32_t us, uint8_t bits)
         settings.prescaler *= 2;
     }
 
-    settings.prescaler -= 1;
+    if (settings.prescaler > MAX_VAL)
+        Abort("Cannot setup timer, too big prescaler/arr! Aborting");
+
+    settings.prescaler -= 1; // cpu adds 1 to prescaler value in PSC
 
     return settings;
 }
@@ -72,7 +77,7 @@ static void BindTimer(Timer* timer, void (*handler)(void* data), void* data, Int
 {
     timer->handlerData = data;
     timer->handler = handler;
-    AddInterruptHandler(timer->_interrupt, priority, &HandleTimerInterrupt, timer);
+    AddInterruptHandler(timer->Interrupt, priority, &HandleTimerInterrupt, timer);
     timer->Tim->DIER = TIM_DIER_UIE;
 }
 
@@ -84,11 +89,12 @@ static void Init(Timer* timer, DeviceTimer* device, uint32_t us, TimerDirection 
     timer->start = &EnableTimer;
     timer->startOnce = &EnableTimerOnce;
     timer->bind = &BindTimer;
-    timer->_interrupt = device->Interrupt;
+    timer->Interrupt = device->Interrupt;
 
     TimerSettings settings = CalculateTimerSettingsUs(us, 16);
     timer->Tim->PSC = settings.prescaler;
     timer->Tim->ARR = settings.arr;
+
     TimerSetDirection(timer, direction);
 }
 

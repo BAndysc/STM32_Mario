@@ -1,6 +1,9 @@
 #include "game.h"
 #include "../adc.h"
 #include "../debug.h"
+#include "external.h"
+#include "gfx.h"
+#include "levels.h"
 
 uint32_t col = 0;
 
@@ -18,8 +21,7 @@ void horizHandler(void* data, uint16_t val)
         INPUT_RIGHT = 1;
 }
 
-extern uint8_t JOYSTICK[2];
-void loop(uint32_t timedelta)
+void loop(int32_t timedelta)
 {
     float delta = timedelta / 16.f;
 
@@ -33,17 +35,14 @@ void loop(uint32_t timedelta)
 
     if (INPUT_ANALOG)
     {
-
-        //uint16_t val = ain.read(&ain, ADC_RESOLUTION_6);
         INPUT_LEFT = 0;
         INPUT_RIGHT = 0;
-        if (JOYSTICK[0] >= 160)
+        if (JoystickInput[JOYSTICK_INPUT_HORIZ] >= 160)
             INPUT_LEFT = 1;
-        else if (JOYSTICK[0] <= 50)
+        else if (JoystickInput[JOYSTICK_INPUT_HORIZ] <= 50)
             INPUT_RIGHT = 1;
 
-        //uint16_t val2 = vertain.read(&vertain, ADC_RESOLUTION_6);
-        INPUT_JUMP = JOYSTICK[1] >= 160;
+        INPUT_JUMP = JoystickInput[JOYSTICK_INPUT_VERT] >= 160;
     }
 }
 
@@ -134,8 +133,6 @@ void InitWall(GameObject* go, int x, int y, char type)
 }
 
 
-GameObject* IsOver(void* skip, Vector pos, Vector size);
-
 void up(GameObject* go, float delta)
 {
     //go->PositionInt.x += 1;
@@ -159,7 +156,7 @@ void up(GameObject* go, float delta)
         go->Sprite = GFX.ENEMY_1_DEAD;
         go->Collides = 0;
         mario.super.Velocity.y = -4;
-        Debug("s");
+        Puts("s");
         return;
     }
 
@@ -195,8 +192,8 @@ void up_star(GameObject* go, float delta)
 
 void InitStar(GameObject* go, int x, int y)
 {
-    go->Position = NewVectorf(x * 16, y * 16);
-    go->PositionInt = NewVector(x * 16, y * 16);
+    go->Position = NewVectorf(x * 16, y * 16 + 8);
+    go->PositionInt = NewVector(x * 16, y * 16 + 8);
     go->Size = NewVector(16, 16);
     go->Sprite = GFX.COIN;
     go->Alpha = 2016;
@@ -239,6 +236,35 @@ void InitSpecial(GameObject* go, int x, int y)
     go->Type = 3;
 }
 
+void InitPole(GameObject* go, int x, int y)
+{
+    go->Position = NewVectorf(x * 16, y * 16);
+    go->PositionInt = NewVector(x * 16, y * 16);
+    go->Size = NewVector(16, 16);
+    go->Sprite = GFX.FLAG_POLE;
+    go->Alpha = 0b1111100000000000;
+    go->Update = nullptr;
+    go->Collides = 0;
+
+    go->Type = 4;
+}
+
+void InitFlagTop(GameObject* go, int x, int y)
+{
+    go->Position = NewVectorf(x * 16, y * 16);
+    go->PositionInt = NewVector(x * 16, y * 16);
+    go->Size = NewVector(16, 16);
+    go->Sprite = GFX.FLAG_TOP;
+    go->Alpha = 0b1111100000000000;
+    go->Update = nullptr;
+    go->Collides = 0;
+
+    go->Type = 4;
+
+    InitFlag(&flag, x, y);
+    AddObjectToStore(&flag.super);
+}
+
 void InitMonster(GameObject* go, int x, int y)
 {
     go->Position = NewVectorf(x * 16, y * 16);
@@ -254,14 +280,39 @@ void InitMonster(GameObject* go, int x, int y)
     go->Velocity = NewVectorf(-0.7f, 0);
 }
 
+int32_t lastUpdate;
+
 void UpdateWorldLoop()
 {
-    loop(10);
+    if (LIVES > 0)
+    {
+        int32_t miliseconds = MilisecondsSinceStart;
+        loop((MilisecondsSinceStart - lastUpdate) / 3);
+        lastUpdate = miliseconds;
+    }
 }
 
-void Start() {
-    StartTicks = TICKS;
+static void InitCastle(int16_t x, int16_t y, bool flip)
+{
+    GameObject* go = GetNewObject();
+
+    go->Position = NewVectorf(x, y);
+    go->PositionInt = NewVector(x, y);
+    go->Size = NewVector(47, 80);
+    go->Sprite = GFX.CASTLE;
+    go->Alpha = 0b0000011111100000;
+    go->Update = nullptr;
+    go->Collides = 0;
+    go->FlipSprite = flip;
+
+    AddObjectToStore(go);
+}
+
+void Start()
+{
+    StartTicks = MilisecondsSinceStart;
     POINTS = 0;
+    LIVES--;
 
     for (int i = 0; i < level->width; ++i)
     {
@@ -271,21 +322,26 @@ void Start() {
             if (block != ' ')
             {
                 GameObject* object = GetNewObject();
-                if (block == 'x')
+                switch (block)
                 {
-                    InitMonster(object, i, j);
-                }
-                else if (block == '*')
-                {
-                    InitStar(object, i, j);
-                }
-                else if (block == '?')
-                {
-                    InitSpecial(object, i, j);
-                }
-                else
-                {
-                    InitWall(object, i, j, block);
+                    case 'x':
+                        InitMonster(object, i, j);
+                        break;
+                    case '0':
+                        InitPole(object, i, j);
+                        break;
+                    case '1':
+                        InitFlagTop(object, i, j);
+                        break;
+                    case '*':
+                        InitStar(object, i, j);
+                        break;
+                    case '?':
+                        InitSpecial(object, i, j);
+                        break;
+                    default:
+                        InitWall(object, i, j, block);
+                        break;
                 }
 
                 AddObjectToStore(object);
@@ -293,14 +349,19 @@ void Start() {
         }
     }
 
+    InitCastle(level->castleX, level->castleY, false);
+
     InitMario(&mario, 1, 6);
     AddObjectToStore(&mario.super);
 
-    Debug("m");
+    InitCastle(level->castleX + 46, level->castleY, true);
+
+    Puts("m");
 }
 
-void InitGame() {
-
+void InitGame()
+{
+    LIVES = 6;
     Start();
 }
 

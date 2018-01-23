@@ -25,7 +25,7 @@ typedef struct Timer
     void (*handler)(void* data);
     void* handlerData;
 
-    InterruptType _interrupt;
+    InterruptType Interrupt;
 } Timer;
 
 typedef enum

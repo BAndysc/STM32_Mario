@@ -9,4 +9,6 @@ uint32_t GetSystemCoreClock();
 
 void SleepAndWaitForInterrupts();
 
+#define PCLK1_HZ (GetSystemCoreClock() / 2)
+
 #endif

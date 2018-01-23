@@ -1,6 +1,5 @@
 #include "interrupts.h"
 #include <gpio.h>
-#include "leds.h"
 #include "irq.h"
 #include <stm32.h>
 

@@ -7,9 +7,9 @@
 
 /*
 
-=======
+========
 = SPIt =
-=======
+========
 
 
 Sprzętowa (z DMA) i programowa obsługa po interfejsie SPIt. Wystarczy użyć funkcji
@@ -22,7 +22,8 @@ jednokierunkowa komunikacja: Master -> Slave, zatem pin MISO nie jest używany.
 
 */
 
-typedef struct SPIt {
+typedef struct SPIt
+{
 
 	Pin Clock;
 	Pin MOSI;
@@ -42,34 +43,40 @@ typedef struct SPIt {
 
 } SPIt;
 
-typedef enum {
+typedef enum
+{
 	SPI_TRANSFER_SIZE_BYTE,
 	SPI_TRANSFER_SIZE_HALF_WORD
 } SPI_TransferSize;
 
-typedef enum {
+typedef enum
+{
     SPI_BIDI_MODE_1_LINE_BI,
     SPI_BIDI_MODE_2_LINE_UNI
 } SPI_BIDIMode;
 
-typedef enum {
+typedef enum
+{
     SPI_RECEIVE_ONLY,
     SPI_TRANSMIT_ONLY,
     SPI_TRANSMIT_AND_RECEIVE,
 } SPI_TransferDirection;
 
-typedef enum {
+typedef enum
+{
     SPI_SLAVE_MANAGMENT_SOFTWARE,
     SPI_SLAVE_MANAGMENT_HARDWARE
 } SPI_SlaveManagment;
 
-typedef enum {
+typedef enum
+{
     SPI_MOST_SIG_BYTE_FIRST,
     SPI_LEAST_SIG_BYTE_FIRST
 } SPI_ByteOrder;
 
 // value is important!
-typedef enum {
+typedef enum
+{
     SPI_BAUD_DIV2 = 0,
     SPI_BAUD_DIV4 = 1,
     SPI_BAUD_DIV8 = 2,
@@ -80,22 +87,26 @@ typedef enum {
     SPI_BAUD_DIV256 = 7,
 } SPI_BaudRatePrescaler;
 
-typedef enum {
+typedef enum
+{
     SPI_ROLE_SLAVE,
     SPI_ROLE_MASTER
 } SPI_Role;
 
-typedef enum {
+typedef enum
+{
     SPI_CLOCK_0_WHEN_IDLE,
     SPI_CLOCK_1_WHEN_IDLE
 } SPI_ClockPolarity;
 
-typedef enum {
+typedef enum
+{
     SPI_FIRST_CLOCK_TRANSITION_IS_FIRST_DATA_CAPTURE_EDGE,
     SPI_SECOND_CLOCK_TRANSITION_IS_FIRST_DATA_CAPTURE_EDGE
 } SPI_ClockPhase;
 
-typedef struct {
+typedef struct
+{
     SPI_BIDIMode BidiMode;
     SPI_TransferDirection Direction;
     SPI_TransferSize TransferSize;

@@ -4,11 +4,11 @@
 #include "interrupts.h"
 #include "queue.h"
 #include "uart.h"
-#include "leds.h"
 #include "pins.h"
 #include "device.h"
 #include "debug.h"
 #include "dma.h"
+#include "clock.h"
 
 #define USART_Mode_Rx_Tx (USART_CR1_RE | USART_CR1_TE)
 #define USART_Enable     USART_CR1_UE
@@ -16,9 +16,6 @@
 #define USART_FlowControl_None 0x0000
 #define USART_FlowControl_RTS  USART_CR3_RTSE
 #define USART_FlowControl_CTS  USART_CR3_CTSE
-
-#define HSI_HZ 48000000U
-#define PCLK1_HZ HSI_HZ
 
 static void EnableUsart(USARTt* usart)
 {
@@ -64,13 +61,15 @@ static void UsartWrite(struct USARTt* usart, char* data)
 
 static void UsartWriteInt(struct USARTt* usart, int32_t num)
 {
+#define INT_32_STRING_MAX_LEN 12
+
 	if (num == 0)
 		usart->write(usart, " 0");
 	else
 	{
 		int index = 0;
-		char str[11]; // enough for int32
-		char strRev[12];
+		char str[INT_32_STRING_MAX_LEN];
+		char strRev[INT_32_STRING_MAX_LEN];
 		strRev[0] = ' ';
 
 		if (num < 0)
@@ -81,7 +80,7 @@ static void UsartWriteInt(struct USARTt* usart, int32_t num)
 
 		while (num != 0)
 		{
-			str[index++] = '0' + (num % 10);
+			str[index++] = (char)('0' + (num % 10));
 			num /= 10;
 		}
 
@@ -93,14 +92,14 @@ static void UsartWriteInt(struct USARTt* usart, int32_t num)
 	}
 }
 
-static void DMAFinishedRead2(void* data)
+static void UsartDmaFinishedRead(void *data)
 {
 	USARTt* usart = (USARTt*)data;
 	if (usart->readHandler)
 		usart->readHandler(usart->data, usart->RxBuffer, usart->packSize);
 }
 
-static void DMAFinishedWrite2(void* data)
+static void UsartDmaFinishedWrite(void *data)
 {
 	USARTt* usart = (USARTt*)data;
 	if (!QueueIsEmpty(&usart->Tx))
@@ -137,8 +136,8 @@ static void ConfigureUsartDMA(USARTt* usart, DeviceUSART* device)
 	config.Priority = DMA_Priority_High;
 	config.PeripherialIncrement = false;
 	config.Circular = DMA_CIRCULAR_NO;
-	InitDMA(&usart->dmaTx, device->DmaTX.Number, device->DmaTX.Stream, device->DmaTX.Channel, &config);
-	DmaSetHandler(&usart->dmaTx, INTERRUPT_PRIORITY_HIGHEST, DMAFinishedWrite2, usart);
+	InitDMA(&usart->dmaTx, (DMA_Number)device->DmaTX.Number, device->DmaTX.Stream, device->DmaTX.Channel, &config);
+	DmaSetHandler(&usart->dmaTx, INTERRUPT_PRIORITY_HIGHEST, UsartDmaFinishedWrite, usart);
 
 	config.MemoryIncrement = true;
 	config.Direction = DMA_Dir_Peripherial_Memory;
@@ -146,18 +145,18 @@ static void ConfigureUsartDMA(USARTt* usart, DeviceUSART* device)
 	config.PeripherialIncrement = false;
 	config.Circular = DMA_CIRCULAR_NO;
 
-	InitDMA(&usart->dmaRx, device->DmaRX.Number, device->DmaRX.Stream, device->DmaRX.Channel, &config);
-	DmaSetHandler(&usart->dmaRx, INTERRUPT_PRIORITY_HIGHEST, DMAFinishedRead2, usart);
+	InitDMA(&usart->dmaRx, (DMA_Number)device->DmaRX.Number, device->DmaRX.Stream, device->DmaRX.Channel, &config);
+	DmaSetHandler(&usart->dmaRx, INTERRUPT_PRIORITY_HIGHEST, UsartDmaFinishedRead, usart);
 }
 
-void InitUsart(USARTt* usart, Pin tx, Pin rx, uint32_t baudrate, UartLength len, UartParity parity, UartStopBits stop)
+bool InitUsart(USARTt* usart, Pin tx, Pin rx, uint32_t baudrate, UartLength len, UartParity parity, UartStopBits stop)
 {
 	DeviceUSART device = GetUSARTForPin(tx, rx);
 
 	if (device.Ptr == 0)
 	{
-		Debug("No USART on given pins!");
-		return;
+		Abort("No USART on given pins!");
+		return false;
 	}
 
 	usart->usart = device.Ptr;
@@ -177,6 +176,8 @@ void InitUsart(USARTt* usart, Pin tx, Pin rx, uint32_t baudrate, UartLength len,
 	AddInterruptHandlerManualBit(device.Interrupt, USART_SR_TXE, USART_CR1_TXEIE, INTERRUPT_PRIORITY_HIGHEST, &UsartTransferCompleteHandler, usart);
 
 	EnableUsart(usart);
+
+	return true;
 }
 
 void UsartSetReadHandler(USARTt* usart, uint8_t packSize, void (*handler)(void* data, char* recv, uint8_t len), void* data)

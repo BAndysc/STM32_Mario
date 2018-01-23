@@ -3,7 +3,6 @@
 #include "buttons.h"
 #include "interrupts.h"
 #include <stdlib.h>
-#include "leds.h"
 
 Button Buttons[BUTTONS_END];
 

@@ -52,14 +52,10 @@ set(SOURCE_FILES
         src/device.h
         src/dma.c
         src/dma.h
-        src/i2c.c
-        src/i2c.h
         src/interrupts.c
         src/interrupts.h
         src/lcd.c
         src/lcd.h
-        src/leds.c
-        src/leds.h
         src/main.c
         src/pins.c
         src/pins.h

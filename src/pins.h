@@ -6,7 +6,8 @@
 
 #define nullptr 0
 
-typedef struct {
+typedef struct
+{
 	GPIO_TypeDef* gpio;
 	char pin;
 } Pin;

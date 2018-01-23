@@ -8,6 +8,21 @@
 
 #define USART_RX_BUFFER_LEN 256
 
+/*
+
+==========
+= USARTt =
+==========
+
+
+Sprzętowa (z DMA) obsługa komunikacji szeregowej po usarcie. Wystarczy użyć funkcji
+na strukturze wraz z podanymi pinami. InitUsart wykrywa czy na danych pinach jest
+sprzętowa obsługa Usart i w takim przypadku używa sprzętowego wspomagania. W przeciwnym
+razie `false`.
+
+*/
+
+
 typedef enum 
 {
 	UART_LENGTH_8b = 0x0000,
@@ -30,7 +45,8 @@ typedef enum
 } UartStopBits;
 
 
-typedef struct USARTt {
+typedef struct USARTt
+{
 	USART_TypeDef* usart;
 	DMAt dmaTx;
 	DMAt dmaRx;
@@ -46,7 +62,7 @@ typedef struct USARTt {
 	uint8_t packSize;
 } USARTt;
 
-void InitUsart(USARTt* usart, Pin tx, Pin rx, uint32_t baudrate, UartLength len, UartParity parity, UartStopBits stop);
+bool InitUsart(USARTt* usart, Pin tx, Pin rx, uint32_t baudrate, UartLength len, UartParity parity, UartStopBits stop);
 void UsartSetReadHandler(USARTt* usart, uint8_t packSize, void (*handler)(void* data, char* recv, uint8_t len), void* data);
 
 #endif

@@ -2,10 +2,8 @@
 #include <stdlib.h>
 #include "queue.h"
 #include "buttons.h"
-#include "leds.h"
 #include "uart.h"
 #include "timer.h"
-#include "i2c.h"
 #include "lcd.h"
 #include "spi.h"
 #include "clock.h"

@@ -7,9 +7,9 @@
 #include "game/game.h"
 #include "debug.h"
 
-#define TDelay 800000
-
 #define INV(A) ((((A) & 0xFF)<<8) | ((A) >> 8))
+
+#define LCD_DELAY_US 100000
 
 #define LINES_TO_DRAW_AT_ONCE 20
 
@@ -51,9 +51,8 @@ static void SendNextInitializeInstruction(LCDt* lcd)
 			break;
 
 		case LCD_MSG_DELAY:
-			Delay(TDelay);
 			lcd->currentInitIndex++;
-			SendNextInitializeInstruction(lcd);
+			lcd->timer.startOnce(&lcd->timer);
 			return;
 
 		case LCD_MSG_WIDTH:
@@ -65,17 +64,23 @@ static void SendNextInitializeInstruction(LCDt* lcd)
 			break;
 
 		case LCD_MSG_END:
+			Debug(" ");
 			lcd->initialized = true;
 			SPISetHandler(&lcd->spi, &DidSent, lcd);
 
 			SPISetTranfserSize(&lcd->spi, SPI_TRANSFER_SIZE_HALF_WORD);
 			lcd->currentLine = 0;
 			lcd->renderer(lcd, lcd->buffer, lcd->currentLine, LINES_TO_DRAW_AT_ONCE, lcd->width);
-
 			break;
 	}
 
 	lcd->currentInitIndex++;
+}
+
+static void AfterDelay(void* data)
+{
+	LCDt* lcd = (LCDt*)data;
+	SendNextInitializeInstruction(lcd);
 }
 
 void DidSentWhileInitialization(void* data)
@@ -142,6 +147,9 @@ void InitLCD(LCDt* lcd, uint16_t width, uint16_t height, Pin mosi, Pin miso, Pin
 
 	InitSPI(&lcd->spi, clock, mosi, miso, &configuration);
     SPISetHandler(&lcd->spi, &DidSentWhileInitialization, lcd);
+
+	InitNextTimer32(&lcd->timer, LCD_DELAY_US, TIMER_DIRECTION_UP);
+	lcd->timer.bind(&lcd->timer, AfterDelay, lcd, INTERRUPT_PRIORITY_HIGH);
 
     InitializeLCD(lcd);
 }

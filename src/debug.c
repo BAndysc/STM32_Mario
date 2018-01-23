@@ -11,7 +11,7 @@ void Debug(char* string)
 void DebugInt(int32_t val)
 {
     if (debugUsart != nullptr)
-        debugUsart->writeInt(debugUsart, val);
+        debugUsart->writeIntSync(debugUsart, val);
 }
 
 void DebugSetUsart(USARTt* usart)

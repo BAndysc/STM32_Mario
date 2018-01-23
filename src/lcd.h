@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "pins.h"
 #include "spi.h"
+#include "timer.h"
 
 struct LCDt;
 
@@ -42,12 +43,15 @@ typedef struct LCDt {
 	uint16_t currentInitIndex;
 	bool initialized;
 
+	Timer timer;
+
 	void (*SendCommand)(struct LCDt* lcd, uint8_t command);
 	void (*SendData8)(struct LCDt* lcd, uint8_t data);
 	void (*SendData16)(struct LCDt* lcd, uint16_t data);
 } LCDt;
 
 
-void InitLCD(LCDt* lcd, uint16_t width, uint16_t height, Pin mosi, Pin miso, Pin clock, Pin CS, Pin A0, Pin reset, LCDRenderLine requestLine, LcdInitInstruction* InitSequence);
+void InitLCD(LCDt* lcd, uint16_t width, uint16_t height, Pin mosi, Pin miso, Pin clock, Pin CS, Pin A0, Pin reset,
+			 LCDRenderLine requestLine, LcdInitInstruction* InitSequence);
 
 #endif

@@ -59,12 +59,17 @@ static void UsartWrite(struct USARTt* usart, char* data)
 		UsartDirectSend(usart);
 }
 
-static void UsartWriteInt(struct USARTt* usart, int32_t num)
+static void InternalUsartWriteInt(struct USARTt* usart, int32_t num, bool sync)
 {
 #define INT_32_STRING_MAX_LEN 12
 
 	if (num == 0)
-		usart->write(usart, " 0");
+	{
+		if (sync)
+			usart->writeSync(usart, " 0");
+		else
+			usart->write(usart, " 0");
+	}
 	else
 	{
 		int index = 0;
@@ -88,8 +93,22 @@ static void UsartWriteInt(struct USARTt* usart, int32_t num)
 			strRev[i+1] = str[index - i - 1];
 
 		strRev[index+1] = 0;
-		usart->write(usart, strRev);
+
+		if (sync)
+			usart->writeSync(usart, strRev);
+		else
+			usart->write(usart, strRev);
 	}
+}
+
+static void UsartWriteInt(struct USARTt* usart, int32_t num)
+{
+	InternalUsartWriteInt(usart, num, false);
+}
+
+static void UsartWriteIntSync(struct USARTt* usart, int32_t num)
+{
+	InternalUsartWriteInt(usart, num, true);
 }
 
 static void UsartDmaFinishedRead(void *data)
@@ -171,6 +190,7 @@ bool InitUsart(USARTt* usart, Pin tx, Pin rx, uint32_t baudrate, UartLength len,
 	usart->write = &UsartWrite;
 	usart->writeInt = &UsartWriteInt;
     usart->writeSync = &UsartWriteSync;
+	usart->writeIntSync = &UsartWriteIntSync;
 
 	AddInterruptHandlerManualBit(device.Interrupt, USART_SR_RXNE, 0, INTERRUPT_PRIORITY_HIGHEST, &UsartReadableHandler, usart);
 	AddInterruptHandlerManualBit(device.Interrupt, USART_SR_TXE, USART_CR1_TXEIE, INTERRUPT_PRIORITY_HIGHEST, &UsartTransferCompleteHandler, usart);

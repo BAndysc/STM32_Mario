@@ -20,6 +20,7 @@ typedef struct Timer
 {
 	TIM_TypeDef* Tim;
     void (*start)(struct Timer* timer);
+	void (*startOnce)(struct Timer* timer);
     void (*bind)(struct Timer* timer, void (*handler)(void* data), void* data, InterruptPriority priority);
 	void (*handler)(void* data);
 	void* handlerData;
@@ -35,5 +36,6 @@ typedef enum
 } TimerDirection;
 
 void InitNextTimer16(Timer* timer, uint32_t us, TimerDirection direction);
+void InitNextTimer32(Timer* timer, uint32_t us, TimerDirection direction);
 
 #endif

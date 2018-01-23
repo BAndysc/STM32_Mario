@@ -66,7 +66,7 @@ void timeToUpdate(void* data)
 	shouldUpdate = true;
 }
 
-volatile int32_t TICKS = 0;
+int32_t TICKS = 0;
 
 void GlobalTimer(void* data)
 {
@@ -135,7 +135,7 @@ int main()
 			UpdateWorldLoop();
 		}
 
-        if (ShouldDraw && (TICKS - lastDraw) >= 32)
+        if (ShouldDraw && (TICKS - lastDraw) >= 37)
 		{
 			lastDraw = TICKS;
 			ShouldDraw = false;

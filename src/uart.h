@@ -56,6 +56,8 @@ typedef struct USARTt
 	void (*writeInt)(struct USARTt* usart, int32_t num);
 
     void (*writeSync)(struct USARTt* usart, char* string);
+	void (*writeIntSync)(struct USARTt* usart, int32_t num);
+
 
 	void (*readHandler)(void* data, char const* recv, uint8_t len);
 	void* data;

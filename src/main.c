@@ -12,6 +12,8 @@
 #include "game/game.h"
 #include "device.h"
 #include "adc.h"
+#include "debug.h"
+#include "ILI9341.h"
 
 extern int INPUT_JUMP;
 
@@ -22,8 +24,11 @@ void handler(Button_Event ev, void* data)
 
 
 LCDt lcd;
-
+Timer ticker;
 USARTt serial;
+Timer updateTimer;
+ADCt adc;
+
 extern int INPUT_ANALOG;
 
 void myReadHandler(void* data, char* recv, uint8_t len)
@@ -58,53 +63,75 @@ uint8_t JOYSTICK[2];
 
 bool shouldUpdate = true;
 
-extern bool ShouldDraw;
+bool ShouldDraw;
 
-void timeToUpdate()
+void timeToUpdate(void* data)
 {
 	shouldUpdate = true;
 }
 
-extern int32_t TICKS;
+volatile int32_t TICKS = 0;
 
-int main() 
+void GlobalTimer(void* data)
+{
+    TICKS++;
+}
+
+static void SetupSerial()
+{
+    InitUsart(&serial, PA_2, PA_3, 9600U, UART_LENGTH_8b, UART_PARITY_NO, UART_STOP_BITS_1);
+    UsartSetReadHandler(&serial, 1, myReadHandler, NULL);
+    DebugSetUsart(&serial);
+    serial.write(&serial, "Welcome to Super Mario Bros\r\n");
+}
+
+static void SetupTicker()
+{
+    // 100us - event every 0.1ms
+    InitNextTimer16(&ticker, 100, TIMER_DIRECTION_UP);
+    ticker.bind(&ticker, &GlobalTimer, NULL, INTERRUPT_PRIORITY_HIGHEST);
+    ticker.start(&ticker);
+}
+
+static void SetupUpdateWorldTimer()
+{
+    // update world every 30ms
+    InitNextTimer16(&updateTimer, 30000, TIMER_DIRECTION_UP);
+    updateTimer.bind(&updateTimer, &timeToUpdate, NULL, INTERRUPT_PRIORITY_HIGHEST);
+    updateTimer.start(&updateTimer);
+}
+
+static void SetupJoystick()
+{
+    InitADC(&adc);
+    AddPinToADC(&adc, PA_4);
+    AddPinToADC(&adc, PA_1);
+    ADCStartContinous(&adc, ADC_RESOLUTION_6, JOYSTICK, INTERRUPT_PRIORITY_HIGH);
+}
+
+static void RequestLine(LCDt* lcd, uint16_t* buffor, uint16_t startLine, uint16_t lines, uint16_t width)
+{
+	ShouldDraw = true;
+}
+
+int main()
 {
 	Turn100MHzClock();
 
-	//InitLeds();
+    SetupSerial();
 
-	InitUsart(&serial, PA_2, PA_3, 9600U, UART_LENGTH_8b, UART_PARITY_NO, UART_STOP_BITS_1);
-	UsartSetReadHandler(&serial, 1, myReadHandler, NULL);
-	DebugSetUsart(&serial);
-	serial.write(&serial, "Hellw!\r\n");
+    SetupTicker();
 
-	//InitUart(9600U, UART_LENGTH_8b, UART_PARITY_NO, UART_STOP_BITS_1);
-	//InitButtons();
+    SetupUpdateWorldTimer();
 
+    InitGame();
 
-	//BindOnButtonEvent(BUTTON_FIRE, handler, NULL);
+    SetupJoystick();
 
-	InitGame();
+	InitILI9341LCD(&lcd, 320, 240, PA_7, PA_6, PA_5, PD_2, PC_11, PC_12, &RequestLine);
 
-	SetTimerHandler(timeToUpdate);
-	InitTimer4();
-	InitTimer3();
-
-	ADCt adc;
-	InitADC(&adc);
-	AddPinToADC(&adc, PA_4);
-	AddPinToADC(&adc, PA_1);
-	ADCStartContinous(&adc, ADC_RESOLUTION_6, JOYSTICK, INTERRUPT_PRIORITY_HIGH);
-
-	InitLCD(&lcd, 320, 240, PA_7, PA_6, PA_5, PD_2, PC_11, PC_12, &RenderLine);
-
-	/*while (1)
-	{
-		serial.write(&serial, "I am alive!\r\n");
-		for (int i = 0; i < 1000000; ++i);
-
-	}*/
 	int32_t lastDraw = 0;
+    int32_t prevSec = 0;
 	while (1)
 	{
 		if (shouldUpdate)
@@ -113,13 +140,21 @@ int main()
 			upd();
 		}
 
-		if (ShouldDraw && (TICKS - lastDraw) >= 4)
+        if ((TICKS - prevSec) >= 10000)
+        {
+            Debug("Sek\r\n");
+            prevSec = TICKS;
+        }
+
+        if (ShouldDraw && (TICKS - lastDraw) >= 32)
 		{
 			lastDraw = TICKS;
 			ShouldDraw = false;
-			lcd.renderer(&lcd, lcd.buffer, lcd.currentLine, 20, lcd.width);
+			RenderLine(&lcd, lcd.buffer, lcd.currentLine, 20, lcd.width);
 			lcd.spi.writeAsync(&(lcd.spi), (char*)lcd.buffer, lcd.width * 20);
 		}
+
+        SleepAndWaitForInterrupts();
 	}
 
 }

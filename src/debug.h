@@ -6,7 +6,8 @@
 
 void Debug(char* string);
 void DebugInt(int32_t val);
-
 void DebugSetUsart(USARTt* usart);
+
+void Abort(char* msg);
 
 #endif

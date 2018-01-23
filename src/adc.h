@@ -12,20 +12,6 @@ typedef enum {
 	ADC_RESOLUTION_12	
 } ADC_RESOLUTION;
 
-typedef struct AnalogIn {
-	Pin Pin;
-	int8_t Channel;
-	ADC_TypeDef* Ptr;
-	
-	uint16_t (*read)(struct AnalogIn* ain, ADC_RESOLUTION resolution);
-
-	void* data;
-	void (*handler)(void* data, uint16_t read);
-} AnalogIn;
-
-void InitAnalogIn(AnalogIn* ain, Pin pin);
-void SetAnalogInHandler(AnalogIn* ain, void (*handler)(void* data, uint16_t read), void* data);
-
 typedef enum {
 	ADC_ALIGN_RIGHT,
 	ADC_ALIGN_LEFT

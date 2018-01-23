@@ -3,9 +3,6 @@
 #include "../adc.h"
 #include "../debug.h"
 
-AnalogIn ain;
-AnalogIn vertain;
-
 uint32_t col = 0;
 
 const float G = 3;
@@ -311,9 +308,6 @@ void InitGame() {
 	Start();
 
 	BindOnButtonEvent(BUTTON_USER, handler23, 0);
-	//InitAnalogIn(&ain, PA_4);
-	SetAnalogInHandler(&ain, horizHandler, 0);
-	//InitAnalogIn(&vertain, PA_1);
 }
 
 

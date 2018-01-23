@@ -38,6 +38,11 @@ typedef struct {
 	InterruptType Interrupt;
 } DeviceUSART;
 
+typedef struct {
+	TIM_TypeDef* Ptr;
+	InterruptType Interrupt;
+} DeviceTimer;
+
 DeviceSPI GetHardwareSPIForPin(Pin clock, Pin mosi, Pin miso);
 
 DeviceDMA GetDMA(uint8_t number, uint8_t stream, uint8_t channel);
@@ -45,6 +50,10 @@ DeviceDMA GetDMA(uint8_t number, uint8_t stream, uint8_t channel);
 DeviceADC GetADCForPin(Pin pin);
 
 DeviceUSART GetUSARTForPin(Pin tx, Pin rx);
+
+DeviceTimer GetNextUnusedTimer16();
+DeviceTimer GetNextUnusedTimer32();
+
 /////
 
 void TurnTimerClockOn(TIM_TypeDef* timer);

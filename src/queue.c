@@ -144,3 +144,10 @@ int QueueGetUpTo(Queue* q, char* buffer, int max)
 
 	return right;
 }
+
+void QueueClear(Queue* q)
+{
+	q->in = 0;
+	q->out = 0;
+	q->__size = 0;
+}

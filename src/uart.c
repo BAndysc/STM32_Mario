@@ -41,6 +41,20 @@ static void UsartDirectSend(USARTt* usart)
 	usart->dmaTx.transmit(&usart->dmaTx, buffer, (void*)&usart->usart->DR, 1);
 }
 
+static void UsartWriteSync(struct USARTt* usart, char* message)
+{
+    // wait for transmission dma to flush
+    QueueClear(&usart->Tx);
+    while (usart->dmaTx.isBusy(&usart->dmaTx));
+
+    // sync write data
+    while (*message)
+    {
+        while (!UsartTransmissionBufferEmpty(usart));
+        usart->usart->DR = (uint32_t)*message++;
+    }
+}
+
 static void UsartWrite(struct USARTt* usart, char* data)
 {
 	QueuePutString(&usart->Tx, data);
@@ -79,42 +93,25 @@ static void UsartWriteInt(struct USARTt* usart, int32_t num)
 	}
 }
 
-/*static void UsartWriteFloat(USARTt* usart, float num)
-{
-	if (num >= (0xFFFFFFFF / 2))
-	{
-		usart->writeInt(usart, (int32_t)num);
-		return;
-	}
-	int32_t val = num * 1000;
-	usart->writeInt(usart, val);
-}*/
-
 static void DMAFinishedRead2(void* data)
 {
 	USARTt* usart = (USARTt*)data;
 	if (usart->readHandler)
-	{
 		usart->readHandler(usart->data, usart->RxBuffer, usart->packSize);
-	}
 }
 
 static void DMAFinishedWrite2(void* data)
 {
 	USARTt* usart = (USARTt*)data;
 	if (!QueueIsEmpty(&usart->Tx))
-	{
 		UsartEnableTransferCompleteInterrupt(usart);
-	}
 }
 
 static void UsartTransferCompleteHandler(void* data)
 {
 	USARTt* usart = (USARTt*)data;
-	if (!QueueIsEmpty(&usart->Tx)) {
-		UsartDirectSend(usart);		
-	}
-	//usart->usart->CR1 &= ~USART_CR1_TXEIE;
+	if (!QueueIsEmpty(&usart->Tx))
+		UsartDirectSend(usart);
 }
 
 static void UsartReadableHandler(void* data)
@@ -131,7 +128,7 @@ static void InitUsartSettings(USARTt* usart, uint32_t baudrate, UartLength len, 
 	usart->usart->CR3 = USART_FlowControl_None | USART_CR3_DMAT | USART_CR3_DMAR;
 	usart->usart->BRR = (PCLK1_HZ + (baudrate / 2U)) / baudrate;
 }
-// siusiak<
+
 static void ConfigureUsartDMA(USARTt* usart, DeviceUSART* device)
 {
 	DMA_Configuration config;
@@ -174,6 +171,7 @@ void InitUsart(USARTt* usart, Pin tx, Pin rx, uint32_t baudrate, UartLength len,
 
 	usart->write = &UsartWrite;
 	usart->writeInt = &UsartWriteInt;
+    usart->writeSync = &UsartWriteSync;
 
 	AddInterruptHandlerManualBit(device.Interrupt, USART_SR_RXNE, 0, INTERRUPT_PRIORITY_HIGHEST, &UsartReadableHandler, usart);
 	AddInterruptHandlerManualBit(device.Interrupt, USART_SR_TXE, USART_CR1_TXEIE, INTERRUPT_PRIORITY_HIGHEST, &UsartTransferCompleteHandler, usart);

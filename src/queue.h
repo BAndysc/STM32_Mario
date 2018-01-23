@@ -44,4 +44,6 @@ char* QueueGetPtr(Queue* q);
 
 int QueueGetUpTo(Queue* q, char* buffer, int max);
 
+void QueueClear(Queue* q);
+
 #endif

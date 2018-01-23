@@ -12,12 +12,12 @@ static void SpiBufferEmpty(void* data);
 
 static bool SpiTransmitBufferEmpty(SPIt* spi)
 {
-	return spi->hardwareSPI->SR & SPI_SR_TXE;
+	return (spi->hardwareSPI->SR & SPI_SR_TXE) != 0;
 }
 
 static bool SpiBusy(SPIt* spi)
 {
-	return spi->hardwareSPI->SR & SPI_SR_BSY;
+	return (spi->hardwareSPI->SR & SPI_SR_BSY) != 0;
 }
 
 static void writeAsync(struct SPIt* spi, char* data, int length)
@@ -56,24 +56,24 @@ static void writeSoftwareBytesAsyncFake(struct  SPIt* spi, char* data, int lengt
 static void writeSyncByte(struct SPIt* spi, char data)
 {
 	while (SpiBusy(spi))
-	__NOP();
+		__NOP();
 
 	while (!SpiTransmitBufferEmpty(spi))
 		__NOP();
 
-    spi->hardwareSPI->DR = data;
+    spi->hardwareSPI->DR = (uint32_t)data;
 
 	while (!SpiTransmitBufferEmpty(spi))
 		__NOP();
 
 	while (SpiBusy(spi))
-	__NOP();
+		__NOP();
 }
 
 static void writeSyncWord(struct SPIt* spi, uint16_t data)
 {
 	while (SpiBusy(spi))
-	__NOP();
+		__NOP();
 
 	while (!SpiTransmitBufferEmpty(spi))
 		__NOP();
@@ -84,7 +84,7 @@ static void writeSyncWord(struct SPIt* spi, uint16_t data)
 		__NOP();
 
 	while (SpiBusy(spi))
-	__NOP();
+		__NOP();
 }
 
 static void writeSync(struct SPIt* spi, char* data, int length)
@@ -173,7 +173,7 @@ void SpiConfigure(SPIt* spi, SPI_Configuration* configuration)
 		if (configuration->Direction == SPI_TRANSMIT_ONLY)
 			spi->hardwareSPI->CR1 |= SPI_CR1_BIDIOE;
 		else if (configuration->Direction == SPI_TRANSMIT_AND_RECEIVE)
-			Debug("Duplex mode and directional mode is not allowed!");
+			Abort("Duplex mode and directional mode is not allowed!");
 	}
 	else
 	{
@@ -181,7 +181,7 @@ void SpiConfigure(SPIt* spi, SPI_Configuration* configuration)
 		else if (configuration->Direction == SPI_RECEIVE_ONLY)
 			spi->hardwareSPI->CR1 |= SPI_CR1_RXONLY;
 		else
-			Debug("Transmit only and unidirectional mode is not allowed!");
+			Abort("Transmit only and unidirectional mode is not allowed!");
 	}
 }
 
@@ -276,15 +276,4 @@ static void SPIDmaDidSent(void* data)
 	SPIt* spi = (SPIt*)data;
 
 	spi->hardwareSPI->CR2 |= SPI_CR2_TXEIE;
-
-	//while (!SpiTransmitBufferEmpty(spi))
-	//	__NOP();
-
-	//while (SpiBusy(spi))
-	//	__NOP();
-
-	//if (spi->onFinishedWrite)
-	//{
-	//	spi->onFinishedWrite(spi->handlerData);
-	//}
 }

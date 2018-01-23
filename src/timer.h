@@ -2,12 +2,17 @@
 #define TIMER_H
 
 #include "stm32.h"
+#include "interrupts.h"
 #include <stdint.h>
 
-typedef struct {
+typedef struct Timer {
 	TIM_TypeDef* Tim;
+    void (*start)(struct Timer* timer);
+    void (*bind)(struct Timer* timer, void (*handler)(void* data), void* data, InterruptPriority priority);
 	void (*handler)(void* data);
 	void* handlerData;
+
+    InterruptType _interrupt;
 } Timer;
 
 typedef enum {
@@ -16,17 +21,7 @@ typedef enum {
 	TIMER_DIRECTION_UP_DOWN,
 } TimerDirection;
 
-void InitTimer3();
-void InitTimer4();
-void SetTimerHandler(void (*func)());
 
-void InitTimer32(Timer* timer, TIM_TypeDef* ptr, uint32_t prescaler, uint32_t toReach, TimerDirection dir);
-void InitTimer16(Timer* timer, TIM_TypeDef* ptr, uint16_t prescaler, uint16_t toReach, TimerDirection dir);
+void InitNextTimer16(Timer* timer, uint32_t us, TimerDirection direction);
 
-void TimerStart(Timer* timer);
-void TimerStop(Timer* timer);
-
-void TimerSetDirection(Timer* timer, TimerDirection dir);
-
-void TimerSetHandler(Timer* timer, void (*func)(void* data), void* data);
-#endif 
+#endif

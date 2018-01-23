@@ -94,8 +94,6 @@ void RenderLine(LCDt* lcd, uint16_t buffer[], int16_t startLine, int16_t lines, 
 #define MIN(A, B) ((A)<(B)?A:B)
 #define MAX(A, B) ((A)>(B)?A:B)
 
-extern uint32_t newScale;
-extern void Rescale();
 void AfterRender()
 {
 	for (int i = 0; i < ObjectsUpdateCounter; ++i)
@@ -106,9 +104,4 @@ void AfterRender()
 
     offset.y = MAX(0, MIN(level->height*16-60-60, offset.y));
     offset.x = MAX(0, offset.x);
-	if (newScale != SCALE)
-	{
-		SCALE = newScale;
-		Rescale();
-	}
 }

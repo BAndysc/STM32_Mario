@@ -71,9 +71,7 @@ uint8_t PinsEq(Pin p1, Pin p2)
 	return p1.gpio == p2.gpio && p1.pin == p2.pin;
 }
 
-void PinConfigureIn(Pin pin,
-                     GPIOPuPd_TypeDef pull, EXTIMode_TypeDef mode,
-                     EXTITrigger_TypeDef trigger)
+void PinConfigureIn(Pin pin, GPIOPuPd_TypeDef pull, EXTIMode_TypeDef mode, EXTITrigger_TypeDef trigger)
 {
 	if (pin.gpio != 0)
 	{
@@ -82,9 +80,7 @@ void PinConfigureIn(Pin pin,
 	}
 }
 
-void PinConfigureOut(Pin pin,
-                      GPIOOType_TypeDef otype, GPIOSpeed_TypeDef speed,
-                      GPIOPuPd_TypeDef pull)
+void PinConfigureOut(Pin pin, GPIOOType_TypeDef otype, GPIOSpeed_TypeDef speed, GPIOPuPd_TypeDef pull)
 {
 	if (pin.gpio != 0)
 	{
@@ -93,9 +89,7 @@ void PinConfigureOut(Pin pin,
 	}
 }
 
-void PinConfigureAlternativeFunc(Pin pin,
-                     GPIOOType_TypeDef otype, GPIOSpeed_TypeDef speed,
-                     GPIOPuPd_TypeDef pull, uint32_t fun)
+void PinConfigureAlternativeFunc(Pin pin, GPIOOType_TypeDef otype, GPIOSpeed_TypeDef speed, GPIOPuPd_TypeDef pull, uint32_t fun)
 {
 	if (pin.gpio != 0)
 	{

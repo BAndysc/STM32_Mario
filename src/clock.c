@@ -7,6 +7,8 @@
 #define _P 4 // 6
 #define _Q 8 // 9
 
+uint32_t SystemCoreClock = 16000000;
+
 // PLL_IN = 8
 // VCO = 384
 // PLL_OUT = 96
@@ -49,9 +51,21 @@ static void ChangeClock(int M, int N, int P, int Q)
     // Wait till the main PLL is used as system clock source
     while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS ) != RCC_CFGR_SWS_PLL)
 		__NOP();
+
+    SystemCoreClock = 96000000;
 }
 
 void Turn100MHzClock()
 {
 	ChangeClock(8, 384, 4, 8);
+}
+
+inline uint32_t GetSystemCoreClock()
+{
+    return SystemCoreClock;
+}
+
+void SleepAndWaitForInterrupts()
+{
+    __WFI();
 }

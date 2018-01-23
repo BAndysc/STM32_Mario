@@ -1,5 +1,6 @@
 #ifdef STM32F411xE
 
+#include <stddef.h>
 #include "../device.h"
 
 
@@ -292,6 +293,41 @@ void GPIOClockEnableDMA(uint8_t number)
 		RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN;
 	else if (number == 2)
 		RCC->AHB1ENR |= RCC_AHB1ENR_DMA2EN;
+}
+
+///// TIMER
+
+TIM_TypeDef* Timers16[] = {TIM3, TIM4, nullptr};
+TIM_TypeDef* Timers32[] = {TIM2, TIM5, nullptr};
+
+InterruptType Timer16Interrupts[] = {INTERRUPT_TIMER3, INTERRUPT_TIMER4, 0};
+InterruptType Timer32Interrupts[] = {INTERRUPT_TIMER2, INTERRUPT_TIMER5, 0};
+
+uint8_t CurrentFreeTimer16 = 0;
+uint8_t CurrentFreeTimer32 = 0;
+
+DeviceTimer GetNextUnusedTimer16()
+{
+	DeviceTimer timer;
+	timer.Ptr = Timers16[CurrentFreeTimer16];
+	timer.Interrupt = Timer16Interrupts[CurrentFreeTimer16];
+
+	if (timer.Ptr != nullptr)
+		CurrentFreeTimer16++;
+
+	return timer;
+}
+
+DeviceTimer GetNextUnusedTimer32()
+{
+	DeviceTimer timer;
+	timer.Ptr = Timers32[CurrentFreeTimer32];
+	timer.Interrupt = Timer32Interrupts[CurrentFreeTimer32];
+
+	if (timer.Ptr != nullptr)
+		CurrentFreeTimer32++;
+
+	return timer;
 }
 
 #endif

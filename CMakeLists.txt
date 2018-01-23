@@ -70,7 +70,9 @@ set(SOURCE_FILES
         src/timer.c
         src/timer.h
         src/uart.c
-        src/uart.h)
+        src/uart.h
+        src/ILI9341.c
+        src/ILI9341.h)
 
 add_executable(mario ${SOURCE_FILES})
 

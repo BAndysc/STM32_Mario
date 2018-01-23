@@ -1,104 +1,110 @@
 #include "timer.h"
 #include "interrupts.h"
 #include "device.h"
+#include "clock.h"
+#include "debug.h"
 
-void (*hfunc)();
-
-static void handler(void* data)
+typedef struct
 {
-	hfunc();
-}
+	uint32_t prescaler;
+	uint32_t arr;
+} TimerSettings;
 
-Timer timer4;
-void InitTimer4()
+static TimerSettings CalculateTimerSettings(uint32_t ms, uint8_t bits)
 {
-	InitTimer16(&timer4, TIM4, 6500, 450, TIMER_DIRECTION_DOWN);
-	TimerSetHandler(&timer4, &handler, 0);
-	TimerStart(&timer4);
+	TimerSettings settings;
 
-}
+	settings.arr = GetSystemCoreClock() / 1000 * ms;
+	settings.prescaler = 1;
 
-uint32_t TICKS =0;
+	uint32_t MAX_VAL = (uint32_t)(2 << (bits - 1)) - 1;
 
-void handlerSek(void* data)
-{
-	++TICKS;
-}
-
-Timer timer3;
-void InitTimer3()
-{
-	InitTimer16(&timer3, TIM3, 9600, 10, TIMER_DIRECTION_UP);
-	TimerSetHandler(&timer3, &handlerSek, 0);
-	TimerStart(&timer3);
-}
-
-void TimerSetDirection(Timer* timer, TimerDirection dir)
-{
-	timer->Tim->CR1 &= ~(TIM_CR1_DIR | TIM_CR1_CMS_0 | TIM_CR1_CMS_1);
-	switch (dir)
+	while (settings.arr > MAX_VAL)
 	{
-		case TIMER_DIRECTION_UP:
-			// no flag
-			break;
-		case TIMER_DIRECTION_DOWN:
-			timer->Tim->CR1 |= TIM_CR1_DIR;
-			break;
-		case TIMER_DIRECTION_UP_DOWN:
-			timer->Tim->CR1 |= TIM_CR1_CMS_0 | TIM_CR1_CMS_1;
-			break;
+		settings.arr /= 2;
+		settings.prescaler *= 2;
 	}
+
+	settings.prescaler -= 1;
+
+	return settings;
 }
 
 
-void TimerStart(Timer* timer)
+static TimerSettings CalculateTimerSettingsUs(uint32_t us, uint8_t bits)
 {
-	timer->Tim->CR1 |= TIM_CR1_CEN;
+	TimerSettings settings;
+
+	settings.arr = GetSystemCoreClock() / 1000000 * us;
+	settings.prescaler = 1;
+
+	uint32_t MAX_VAL = (uint32_t)(2 << (bits - 1)) - 1;
+
+	while (settings.arr > MAX_VAL)
+	{
+		settings.arr /= 2;
+		settings.prescaler *= 2;
+	}
+
+	settings.prescaler -= 1;
+
+	return settings;
 }
 
-void TimerStop(Timer* timer)
+static void EnableTimer(Timer* timer)
 {
-	timer->Tim->CR1 &= ~TIM_CR1_CEN;
+    timer->Tim->CR1 |= TIM_CR1_CEN;
 }
 
-void TimerSetHandler(Timer* timer, void (*func)(void* data), void* data)
+static void HandleTimerInterrupt(void* data)
 {
-	timer->handler = func;
-	timer->handlerData = data;
+    Timer* timer = (Timer*)data;
+
+    if (timer->handler)
+        timer->handler(timer->handlerData);
 }
 
-void HandleTimerFinish(void* data)
+static void TimerSetDirection(Timer* timer, TimerDirection dir)
 {
-	Timer* timer = (Timer*)data;
-
-	if (timer->handler)
-		timer->handler(timer->handlerData);
+    timer->Tim->CR1 &= ~(TIM_CR1_DIR | TIM_CR1_CMS_0 | TIM_CR1_CMS_1);
+    switch (dir)
+    {
+        case TIMER_DIRECTION_UP:
+            // no flag
+            break;
+        case TIMER_DIRECTION_DOWN:
+            timer->Tim->CR1 |= TIM_CR1_DIR;
+            break;
+        case TIMER_DIRECTION_UP_DOWN:
+            timer->Tim->CR1 |= TIM_CR1_CMS_0 | TIM_CR1_CMS_1;
+            break;
+    }
 }
 
-void InitTimer32(Timer* timer, TIM_TypeDef* ptr, uint32_t prescaler, uint32_t toReach, TimerDirection dir)
+static void BindTimer(Timer* timer, void (*handler)(void* data), void* data, InterruptPriority priority)
 {
-	TurnTimerClockOn(ptr);
-	timer->Tim = ptr;
-	timer->Tim->PSC = prescaler;
-	timer->Tim->ARR = toReach;
-
-	AddInterruptHandler(GetInterruptForTimer(ptr), INTERRUPT_PRIORITY_HIGH, &HandleTimerFinish, timer);
-	timer->Tim->DIER = TIM_DIER_UIE;
+    timer->handlerData = data;
+    timer->handler = handler;
+    AddInterruptHandler(timer->_interrupt, priority, &HandleTimerInterrupt, timer);
+    timer->Tim->DIER = TIM_DIER_UIE;
 }
 
-void InitTimer16(Timer* timer, TIM_TypeDef* ptr, uint16_t prescaler, uint16_t toReach, TimerDirection dir)
+void InitNextTimer16(Timer* timer, uint32_t us, TimerDirection direction)
 {
-	TurnTimerClockOn(ptr);
-	timer->Tim = ptr;
-	timer->Tim->PSC = prescaler;
-	timer->Tim->ARR = toReach;
-	TimerSetDirection(timer, dir);
+    DeviceTimer device = GetNextUnusedTimer16();
 
-	AddInterruptHandler(GetInterruptForTimer(ptr), INTERRUPT_PRIORITY_HIGH, &HandleTimerFinish, timer);
-	timer->Tim->DIER = TIM_DIER_UIE;
-}
+    if (!device.Ptr)
+        Abort("All 16 bit timers are already used! Aborting!");
 
-void SetTimerHandler(void (*func)())
-{
-	hfunc = func;
+    TurnTimerClockOn(device.Ptr);
+
+    timer->Tim = device.Ptr;
+    timer->start = &EnableTimer;
+    timer->bind = &BindTimer;
+    timer->_interrupt = device.Interrupt;
+
+    TimerSettings settings = CalculateTimerSettingsUs(us, 16);
+    timer->Tim->PSC = settings.prescaler;
+    timer->Tim->ARR = settings.arr;
+    TimerSetDirection(timer, direction);
 }

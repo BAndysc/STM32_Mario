@@ -7,247 +7,104 @@
 #include "game/game.h"
 #include "debug.h"
 
-/* Needed delay(s)	*/
-
-#define Tinit	 150
-#define T120ms	(MAIN_CLOCK_MHZ * 120000 / 4)
-
 #define TDelay 800000
 
 #define INV(A) ((((A) & 0xFF)<<8) | ((A) >> 8))
 
+#define LINES_TO_DRAW_AT_ONCE 20
+
 static void SendCommand(LCDt* lcd, uint8_t command)
 {
 	SetHigh(lcd->A0);
-	lcd->spi.write8(&lcd->spi, command);
-	SetLow(lcd->A0);
+	lcd->spi.writeAsync(&lcd->spi, (char*)&command, 1);
 }
 
 static void SendData8(LCDt* lcd, uint8_t data)
 {
-    // A0(1); is already set
-	lcd->spi.write8(&lcd->spi, data);
+	lcd->spi.writeAsync(&lcd->spi, (char*)&data, 1);
 }
 
 static void SendData16(LCDt* lcd, uint16_t data)
 {
-    // A0(1); is already set
-	lcd->spi.write16(&lcd->spi, data);
+	lcd->spi.writeAsync(&lcd->spi, (char*)&data, 2);
 }
 
-void Rescale()
+void DidSent(void* data);
+
+static void SendNextInitializeInstruction(LCDt* lcd)
 {
-/*    if (SCALE == 2)
-    {
-        lcd->SendCommand(lcd, 0x2A);
-        lcd->SendData8(lcd, 0 >> 8);
-        lcd->SendData8(lcd, 0);
-        lcd->SendData8(lcd, (0 + 320 - 1) >> 8);
-        lcd->SendData8(lcd, (0 + 320 - 1) & 0xFF);
+	SetLow(lcd->A0);
+	LcdInitInstruction* instruction = &lcd->instructions[lcd->currentInitIndex];
 
-    // CS(1);
-        lcd->SendCommand(lcd, 0x2B);
-        lcd->SendData8(lcd, 0 >> 8);
-        lcd->SendData8(lcd, 0);
-        lcd->SendData8(lcd, (0 + 240 - 1) >> 8);
-        lcd->SendData8(lcd, 0 + 240 - 1);
-    // CS(1);
-        lcd->SendCommand(lcd, 0x2C);
-    }
-    else
-    {
-        lcd->SendCommand(lcd, 0x2A);
-        lcd->SendData8(lcd, 80 >> 8);
-        lcd->SendData8(lcd, 80);
-        lcd->SendData8(lcd, (0 + 240 - 1) >> 8);
-        lcd->SendData8(lcd, (0 + 240 - 1) & 0xFF);
+	switch (instruction->type)
+	{
+		case LCD_MSG_COMMAND:
+			lcd->SendCommand(lcd, instruction->byte);
+			break;
 
-    // CS(1);
-        lcd->SendCommand(lcd, 0x2B);
-        lcd->SendData8(lcd, 60 >> 8);
-        lcd->SendData8(lcd, 60);
-        lcd->SendData8(lcd, (0 + 180 - 1) >> 8);
-        lcd->SendData8(lcd, 0 + 180 - 1);
-    // CS(1);
-        lcd->SendCommand(lcd, 0x2C);       
-    }*/
+		case LCD_MSG_DATA:
+			lcd->SendData8(lcd, instruction->byte);
+			break;
+
+		case LCD_MSG_DATA16:
+			lcd->SendData16(lcd, instruction->byte);
+			break;
+
+		case LCD_MSG_DELAY:
+			Delay(TDelay);
+			lcd->currentInitIndex++;
+			SendNextInitializeInstruction(lcd);
+			return;
+
+		case LCD_MSG_WIDTH:
+			lcd->SendData16(lcd, INV(lcd->width - 1));
+			break;
+
+		case LCD_MSG_HEIGHT:
+			lcd->SendData16(lcd, INV(lcd->height - 1));
+			break;
+
+		case LCD_MSG_END:
+			lcd->initialized = true;
+			SPISetHandler(&lcd->spi, &DidSent, lcd);
+
+			SPISetTranfserSize(&lcd->spi, SPI_TRANSFER_SIZE_HALF_WORD);
+			lcd->currentLine = 0;
+			lcd->renderer(lcd, lcd->buffer, lcd->currentLine, LINES_TO_DRAW_AT_ONCE, lcd->width);
+
+			break;
+	}
+
+	lcd->currentInitIndex++;
 }
 
-extern uint32_t TICKS;
-uint32_t PREVIOUS_TICKS;
+void DidSentWhileInitialization(void* data)
+{
+	LCDt* lcd = (LCDt*)data;
 
-bool ShouldDraw = false;
+	SendNextInitializeInstruction(lcd);
+}
 
-#define LINES 20
 void DidSent(void* data) {
 	LCDt* lcd = (LCDt*)data;
-	lcd->currentLine += LINES;
+
+	lcd->currentLine += LINES_TO_DRAW_AT_ONCE;
 	if (lcd->currentLine == lcd->height)
 	{
 		lcd->currentLine = 0;
-        AfterRender();
-        uint32_t diff = TICKS - PREVIOUS_TICKS;
-        //DebugInt((1000/diff));
-        //Debug("\r\n");
-        PREVIOUS_TICKS = TICKS;
+		AfterRender();
 	}
-	ShouldDraw = true;
+	lcd->renderer(lcd, lcd->buffer, lcd->currentLine, LINES_TO_DRAW_AT_ONCE, lcd->width);
 }
-
-/*void LCDsetRectangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
-	lcd->SendCommand(lcd, 0x2A);
-	lcd->SendData16(lcd, x1);
-	lcd->SendData16(lcd, x2);
-
-	lcd->SendCommand(lcd, 0x2B);
-	lcd->SendData16(lcd, y1);
-	lcd->SendData16(lcd, y2);
-
-	lcd->SendCommand(lcd, 0x2C);
-}*/
-
 
 static void InitializeLCD(LCDt* lcd) {
 	SetLow(lcd->CS);
-	SetLow(lcd->A0);
-	SetHigh(lcd->Reset);
-	SetLow(lcd->Reset);
-
 	SetHigh(lcd->CS);
-	lcd->SendCommand(lcd, ILI9341_COMMAND_SOFTWARE_RESET);
-	lcd->SendCommand(lcd, ILI9341_COMMAND_DISPLAY_OFF);
 
-	/* Start Initial Sequence ----------------------------------------------------*/
-	lcd->SendCommand(lcd, ILI9341_COMMAND_POWER_CONTROL_B);
-	lcd->SendData8(lcd, 0x00); // always 0
-	lcd->SendData8(lcd, 0x81);
-	lcd->SendData8(lcd, 0x30);
-
-	lcd->SendCommand(lcd, ILI9341_COMMAND_POWER_ON_SEQUENCE_CONTROL);
-	lcd->SendData8(lcd, 0x64);
-	lcd->SendData8(lcd, 0x03);
-	lcd->SendData8(lcd, 0x12);
-	lcd->SendData8(lcd, 0x81);
-
-	lcd->SendCommand(lcd, ILI9341_COMMAND_DIVER_TIMING_CONTROL_A);
-	lcd->SendData8(lcd, 0x85);
-	lcd->SendData8(lcd, 0x01);
-	lcd->SendData8(lcd, 0x79);
-
-	lcd->SendCommand(lcd, ILI9341_COMMAND_POWER_CONTROL_A);
-	lcd->SendData8(lcd, 0x39);
-	lcd->SendData8(lcd, 0x2C);
-	lcd->SendData8(lcd, 0x00);
-	lcd->SendData8(lcd, 0x34);
-	lcd->SendData8(lcd, 0x02);
-
-	lcd->SendCommand(lcd, ILI9341_COMMAND_PUMP_RADIO_CONTROL);
-	lcd->SendData8(lcd, 0x20);
-
-	lcd->SendCommand(lcd, ILI9341_COMMAND_DIVER_TIMING_CONTROL_B);
-	lcd->SendData8(lcd, 0x00);
-	lcd->SendData8(lcd, 0x00);
-
-	lcd->SendCommand(lcd, ILI9341_COMMAND_POWER_CONTROL_1);
-	lcd->SendData8(lcd, 0x26);
-
-	lcd->SendCommand(lcd, ILI9341_COMMAND_POWER_CONTROL_2);
-	lcd->SendData8(lcd, 0x11);
-
-	lcd->SendCommand(lcd, ILI9341_COMMAND_VCOM_CONTROL_1);
-	lcd->SendData8(lcd, 0x35);
-	lcd->SendData8(lcd, 0x3E);
-
-	lcd->SendCommand(lcd, ILI9341_COMMAND_VCOM_CONTROL_2);
-	lcd->SendData8(lcd, 0xBE);
-
-	lcd->SendCommand(lcd, ILI9341_COMMAND_MEMORY_ACCESS_CONTROL);
-	lcd->SendData8(lcd, 0xE8); // 48
-
-	lcd->SendCommand(lcd, ILI9341_COMMAND_COLMOD_PIXEL_FORMAT_SET);
-	lcd->SendData8(lcd, 0x55); // 16 bit pixel
-
-	lcd->SendCommand(lcd, ILI9341_COMMAND_FRAME_RATE_CONTROL_NORMAL);
-	lcd->SendData8(lcd, 0x00);
-	lcd->SendData8(lcd, 0b11111);
-
-	lcd->SendCommand(lcd, ILI9341_COMMAND_DIGITAL_GAMMA_CONTROL_1);
-	lcd->SendData8(lcd, 0x08);
-
-	lcd->SendCommand(lcd, ILI9341_COMMAND_GAMMA_SET);
-	lcd->SendData8(lcd, 0x01); // gamma set for curve 01/2/04/08
-
-	lcd->SendCommand(lcd, ILI9341_COMMAND_POSITIVE_GAMMA_CORRECTION);
-	lcd->SendData8(lcd, 0x1F);
-	lcd->SendData8(lcd, 0x1A);
-	lcd->SendData8(lcd, 0x18);
-	lcd->SendData8(lcd, 0x0A);
-	lcd->SendData8(lcd, 0x0F);
-	lcd->SendData8(lcd, 0x06);
-	lcd->SendData8(lcd, 0x45);
-	lcd->SendData8(lcd, 0x87);
-	lcd->SendData8(lcd, 0x32);
-	lcd->SendData8(lcd, 0x0A);
-	lcd->SendData8(lcd, 0x07);
-	lcd->SendData8(lcd, 0x02);
-	lcd->SendData8(lcd, 0x07);
-	lcd->SendData8(lcd, 0x05);
-	lcd->SendData8(lcd, 0x00);
-
-	lcd->SendCommand(lcd, ILI9341_COMMAND_NEGATIVE_GAMMA_CORRECTION);
-	lcd->SendData8(lcd, 0x00);
-	lcd->SendData8(lcd, 0x25);
-	lcd->SendData8(lcd, 0x27);
-	lcd->SendData8(lcd, 0x05);
-	lcd->SendData8(lcd, 0x10);
-	lcd->SendData8(lcd, 0x09);
-	lcd->SendData8(lcd, 0x3A);
-	lcd->SendData8(lcd, 0x78);
-	lcd->SendData8(lcd, 0x4D);
-	lcd->SendData8(lcd, 0x05);
-	lcd->SendData8(lcd, 0x18);
-	lcd->SendData8(lcd, 0x0D);
-	lcd->SendData8(lcd, 0x38);
-	lcd->SendData8(lcd, 0x3A);
-	lcd->SendData8(lcd, 0x1F);
-
-	lcd->SendCommand(lcd, ILI9341_COMMAND_TEARING_EFFECT_LINE_OFF);
-	//lcd->SendCommand(lcd, ILI9341_COMMAND_TEARING_EFFECT_LINE_ON);
-
-	lcd->SendCommand(lcd, ILI9341_COMMAND_ENTRY_MODE_SET);
-	lcd->SendData8(lcd, 0x07);
-
-	lcd->SendCommand(lcd, ILI9341_COMMAND_DISPLAY_FUNCTION_CONTROL);
-	lcd->SendData8(lcd, 0x0A);
-	lcd->SendData8(lcd, 0x82);
-	lcd->SendData8(lcd, 0x27);
-	lcd->SendData8(lcd, 0x00);
-
-	lcd->SendCommand(lcd, ILI9341_COMMAND_SLEEP_OUT);
-
-	Delay(TDelay);
-
-
-	lcd->SendCommand(lcd, ILI9341_COMMAND_DISPLAY_ON);
-	Delay(TDelay);
-
-	lcd->SendCommand(lcd, ILI9341_COMMAND_COLUMN_ADDRESS_SET);
-	lcd->SendData16(lcd, 0);
-	lcd->SendData16(lcd, INV(lcd->width - 1));
-
-	lcd->SendCommand(lcd, ILI9341_COMMAND_PAGE_ADDRESS_SET);
-	lcd->SendData16(lcd, 0);
-	lcd->SendData16(lcd, INV(lcd->height - 1));
-	lcd->SendCommand(lcd, ILI9341_COMMAND_MEMORY_WRITE);
-
-
-	SPISetTranfserSize(&lcd->spi, SPI_TRANSFER_SIZE_HALF_WORD);
-	lcd->currentLine = lcd->height - LINES;
-	DidSent(lcd);
+	SendNextInitializeInstruction(lcd);
 }
 
-
-void InitLCD(LCDt* lcd, uint16_t width, uint16_t height, Pin mosi, Pin miso, Pin clock, Pin cs, Pin a0, Pin reset, LCDRenderLine renderer)
+void InitLCD(LCDt* lcd, uint16_t width, uint16_t height, Pin mosi, Pin miso, Pin clock, Pin cs, Pin a0, Pin reset, LCDRenderLine requestLine, LcdInitInstruction* instructions)
 {
 	lcd->width = width;
 	lcd->height = height;
@@ -256,11 +113,15 @@ void InitLCD(LCDt* lcd, uint16_t width, uint16_t height, Pin mosi, Pin miso, Pin
 	lcd->A0 = a0;
 	lcd->Reset = reset;
 
-	lcd->renderer = renderer;
+	lcd->instructions = instructions;
+	lcd->currentInitIndex = 0;
+	lcd->initialized = false;
 
 	lcd->SendCommand = &SendCommand;
 	lcd->SendData16 = &SendData16;
 	lcd->SendData8 = &SendData8;
+
+	lcd->renderer = requestLine;
 
     PinConfigureOut(cs, GPIO_OType_PP, GPIO_High_Speed, GPIO_PuPd_NOPULL);
     PinConfigureOut(a0, GPIO_OType_PP, GPIO_High_Speed, GPIO_PuPd_NOPULL);
@@ -280,7 +141,7 @@ void InitLCD(LCDt* lcd, uint16_t width, uint16_t height, Pin mosi, Pin miso, Pin
 	configuration.SlaveManagment = SPI_SLAVE_MANAGMENT_SOFTWARE;
 
 	InitSPI(&lcd->spi, clock, mosi, miso, &configuration);
-    SPISetHandler(&lcd->spi, &DidSent, lcd);
+    SPISetHandler(&lcd->spi, &DidSentWhileInitialization, lcd);
 
     InitializeLCD(lcd);
 }

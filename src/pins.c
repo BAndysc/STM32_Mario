@@ -50,59 +50,59 @@ Pin const PC_4 = {.gpio = GPIOC, .pin = 4};
 
 void SetHigh(Pin pin)
 {
-	pin.gpio->BSRRH = (1 << pin.pin);
+    pin.gpio->BSRRH = (1 << pin.pin);
 }
 
 void SetLow(Pin pin)
 {
-	pin.gpio->BSRRL = (1 << pin.pin);
+    pin.gpio->BSRRL = (1 << pin.pin);
 }
 
 void SetPin(Pin pin, uint32_t low)
 {
-	if (low)
-		SetLow(pin);
-	else
-		SetHigh(pin);
+    if (low)
+        SetLow(pin);
+    else
+        SetHigh(pin);
 }
 
 uint8_t PinsEq(Pin p1, Pin p2)
 {
-	return p1.gpio == p2.gpio && p1.pin == p2.pin;
+    return p1.gpio == p2.gpio && p1.pin == p2.pin;
 }
 
 void PinConfigureIn(Pin pin, GPIOPuPd_TypeDef pull, EXTIMode_TypeDef mode, EXTITrigger_TypeDef trigger)
 {
-	if (pin.gpio != 0)
-	{
-		GPIOClockEnable(pin);
-		GPIOinConfigure(pin.gpio, pin.pin, pull, mode, trigger);
-	}
+    if (pin.gpio != 0)
+    {
+        GPIOClockEnable(pin);
+        GPIOinConfigure(pin.gpio, pin.pin, pull, mode, trigger);
+    }
 }
 
 void PinConfigureOut(Pin pin, GPIOOType_TypeDef otype, GPIOSpeed_TypeDef speed, GPIOPuPd_TypeDef pull)
 {
-	if (pin.gpio != 0)
-	{
-		GPIOClockEnable(pin);
-		GPIOoutConfigure(pin.gpio, pin.pin, otype, speed, pull);
-	}
+    if (pin.gpio != 0)
+    {
+        GPIOClockEnable(pin);
+        GPIOoutConfigure(pin.gpio, pin.pin, otype, speed, pull);
+    }
 }
 
 void PinConfigureAlternativeFunc(Pin pin, GPIOOType_TypeDef otype, GPIOSpeed_TypeDef speed, GPIOPuPd_TypeDef pull, uint32_t fun)
 {
-	if (pin.gpio != 0)
-	{
-		GPIOClockEnable(pin);
-		GPIOafConfigure(pin.gpio, pin.pin, otype, speed, pull, fun);
-	}
+    if (pin.gpio != 0)
+    {
+        GPIOClockEnable(pin);
+        GPIOafConfigure(pin.gpio, pin.pin, otype, speed, pull, fun);
+    }
 }
 
 void PinConfigureAnalogIn(Pin pin)
 {
-	if (pin.gpio != 0)
-	{
-		GPIOClockEnable(pin);
-		GPIOainConfigure(pin.gpio, pin.pin);
-	}
+    if (pin.gpio != 0)
+    {
+        GPIOClockEnable(pin);
+        GPIOainConfigure(pin.gpio, pin.pin);
+    }
 }

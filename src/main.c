@@ -20,32 +20,32 @@ ADCt adc;
 
 void myReadHandler(void* data, char const* recv, uint8_t len)
 {
-	switch (recv[0])
-	{
-		case 't':
-			INPUT_ANALOG = !INPUT_ANALOG;
-			break;
-		case 'a':
-			INPUT_LEFT = 0;
-			break;
-		case 'd':
-			INPUT_RIGHT = 0;
-			break;
-		case 'w':
-			INPUT_JUMP = 0;
-			break;
-		case 'A':
-			INPUT_LEFT = 1;
-			break;
-		case 'D':
-			INPUT_RIGHT = 1;
-			break;
-		case 'W':
-			INPUT_JUMP = 1;
-			break;
-		default:
-			break;
-	}
+    switch (recv[0])
+    {
+        case 't':
+            INPUT_ANALOG = !INPUT_ANALOG;
+            break;
+        case 'a':
+            INPUT_LEFT = 0;
+            break;
+        case 'd':
+            INPUT_RIGHT = 0;
+            break;
+        case 'w':
+            INPUT_JUMP = 0;
+            break;
+        case 'A':
+            INPUT_LEFT = 1;
+            break;
+        case 'D':
+            INPUT_RIGHT = 1;
+            break;
+        case 'W':
+            INPUT_JUMP = 1;
+            break;
+        default:
+            break;
+    }
 }
 
 uint8_t JOYSTICK[2];
@@ -56,7 +56,7 @@ bool ShouldDraw;
 
 void timeToUpdate(void* data)
 {
-	shouldUpdate = true;
+    shouldUpdate = true;
 }
 
 int32_t TICKS = 0;
@@ -100,12 +100,12 @@ static void SetupJoystick()
 
 static void RequestLine(LCDt* lcd, uint16_t* buffor, uint16_t startLine, uint16_t lines, uint16_t width)
 {
-	ShouldDraw = true;
+    ShouldDraw = true;
 }
 
 int main()
 {
-	Turn100MHzClock();
+    Turn100MHzClock();
 
     SetupSerial();
 
@@ -117,26 +117,26 @@ int main()
 
     SetupJoystick();
 
-	InitILI9341LCD(&lcd, 320, 240, PA_7, PA_6, PA_5, PD_2, PC_11, PC_12, &RequestLine);
+    InitILI9341LCD(&lcd, 320, 240, PA_7, PA_6, PA_5, PD_2, PC_11, PC_12, &RequestLine);
 
-	int32_t lastDraw = 0;
-	while (1)
-	{
-		if (shouldUpdate)
-		{
-			shouldUpdate = false;
-			UpdateWorldLoop();
-		}
+    int32_t lastDraw = 0;
+    while (1)
+    {
+        if (shouldUpdate)
+        {
+            shouldUpdate = false;
+            UpdateWorldLoop();
+        }
 
         if (ShouldDraw && (TICKS - lastDraw) >= 37)
-		{
-			lastDraw = TICKS;
-			ShouldDraw = false;
-			RenderLine(&lcd, lcd.buffer, lcd.currentLine, 20, lcd.width);
-			lcd.spi.writeAsync(&(lcd.spi), (char*)lcd.buffer, lcd.width * 20);
-		}
+        {
+            lastDraw = TICKS;
+            ShouldDraw = false;
+            RenderLine(&lcd, lcd.buffer, lcd.currentLine, 20, lcd.width);
+            lcd.spi.writeAsync(&(lcd.spi), (char*)lcd.buffer, lcd.width * 20);
+        }
 
         SleepAndWaitForInterrupts();
-	}
+    }
 
 }

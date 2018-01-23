@@ -6,29 +6,29 @@
 
 typedef struct GameObject {
 
-	uint16_t* Sprite;
+    uint16_t* Sprite;
 
-	int FlipSprite;
+    int FlipSprite;
 
-	Vectorf Position;
+    Vectorf Position;
 
-	Vectorf Velocity;
+    Vectorf Velocity;
 
-	Vector PositionInt;
+    Vector PositionInt;
 
-	Vector Size;
+    Vector Size;
 
-	uint16_t Alpha;
+    uint16_t Alpha;
 
-	uint16_t Collides;
+    uint16_t Collides;
 
-	uint8_t Frame;
+    uint8_t Frame;
 
-	uint8_t Type;
+    uint8_t Type;
 
-	uint8_t Deactive;
+    uint8_t Deactive;
 
-	void (*Update)(struct GameObject* this, float delta);
+    void (*Update)(struct GameObject* this, float delta);
 
 } GameObject;
 

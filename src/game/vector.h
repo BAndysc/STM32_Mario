@@ -4,13 +4,13 @@
 #include <stdint.h>
 
 typedef struct {
-	float x;
-	float y;
+    float x;
+    float y;
 } Vectorf;
 
 typedef struct {
-	int32_t x;
-	int32_t y;
+    int32_t x;
+    int32_t y;
 } Vector;
 
 Vector Vectorf2Vector(Vectorf v);

@@ -18,41 +18,41 @@ Uogólnienie komponentów oferowanych przez płytki STM32. Dla każdej, którą 
 */
 
 typedef struct {
-	DMA_Stream_TypeDef* Ptr;
-	InterruptType Interrupt;
+    DMA_Stream_TypeDef* Ptr;
+    InterruptType Interrupt;
 } DeviceDMA;
 
 typedef struct {
-	uint8_t Number;
-	uint8_t Stream;
-	uint8_t Channel;
+    uint8_t Number;
+    uint8_t Stream;
+    uint8_t Channel;
 } DmaData;
 
 typedef struct {
-	SPI_TypeDef* SPI;
-	uint32_t AlternateFunction;
-	DmaData DMAtx;
-	InterruptType Interrupt;
+    SPI_TypeDef* SPI;
+    uint32_t AlternateFunction;
+    DmaData DMAtx;
+    InterruptType Interrupt;
 } DeviceSPI;
 
 typedef struct {
-	ADC_TypeDef* Ptr;
-	DmaData Dma;
-	uint8_t Channel;
-	InterruptType Interrupt;
+    ADC_TypeDef* Ptr;
+    DmaData Dma;
+    uint8_t Channel;
+    InterruptType Interrupt;
 } DeviceADC;
 
 typedef struct {
-	USART_TypeDef* Ptr;
-	DmaData DmaTX;
-	DmaData DmaRX;
-	uint32_t AlternateFunction;
-	InterruptType Interrupt;
+    USART_TypeDef* Ptr;
+    DmaData DmaTX;
+    DmaData DmaRX;
+    uint32_t AlternateFunction;
+    InterruptType Interrupt;
 } DeviceUSART;
 
 typedef struct {
-	TIM_TypeDef* Ptr;
-	InterruptType Interrupt;
+    TIM_TypeDef* Ptr;
+    InterruptType Interrupt;
 } DeviceTimer;
 
 DeviceSPI GetHardwareSPIForPin(Pin clock, Pin mosi, Pin miso);

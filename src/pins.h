@@ -8,8 +8,8 @@
 
 typedef struct
 {
-	GPIO_TypeDef* gpio;
-	char pin;
+    GPIO_TypeDef* gpio;
+    char pin;
 } Pin;
 
 extern Pin NC;

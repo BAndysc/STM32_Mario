@@ -6,13 +6,13 @@
 
 #define BUFFER_SIZE 500
 
-typedef struct 
+typedef struct
 {
-	char buffer[BUFFER_SIZE];
-	int16_t in;
-	int16_t out;
+    char buffer[BUFFER_SIZE];
+    int16_t in;
+    int16_t out;
 
-	int16_t __size;
+    int16_t __size;
 } Queue;
 
 

@@ -5,7 +5,7 @@ set(CMAKE_VERBOSE_MAKEFILE off)
 
 SET(CMAKE_C_COMPILER arm-eabi-gcc)
 
-SET(CMAKE_C_FLAGS "-mthumb -mcpu=cortex-m4 -mfloat-abi=softfp -mfpu=fpv4-sp-d16 -Wall -g -DDMA -O2 -ffunction-sections -fdata-sections")
+SET(CMAKE_C_FLAGS "-mthumb -mcpu=cortex-m4 -mfloat-abi=softfp -mfpu=fpv4-sp-d16 -Wall -g -DDMA -O2 -ffunction-sections -fdata-sections -Wno-trigraphs")
 
 SET(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS_INIT} -mthumb -mcpu=cortex-m4 -mfloat-abi=softfp -mfpu=fpv4-sp-d16 -Wl,--gc-sections -nostartfiles -L/opt/arm/stm32/lds -Tstm32f411re.lds")
 

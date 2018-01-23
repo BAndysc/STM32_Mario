@@ -8,29 +8,29 @@
 
 typedef struct
 {
-	uint32_t prescaler;
-	uint32_t arr;
+    uint32_t prescaler;
+    uint32_t arr;
 } TimerSettings;
 
 
 static TimerSettings CalculateTimerSettingsUs(uint32_t us, uint8_t bits)
 {
-	TimerSettings settings;
+    TimerSettings settings;
 
-	settings.arr = GetSystemCoreClock() / MICROSECONDS_IN_SECOND * us;
-	settings.prescaler = 1; // let's start with no prescaler (PSC = 0)
+    settings.arr = GetSystemCoreClock() / MICROSECONDS_IN_SECOND * us;
+    settings.prescaler = 1; // let's start with no prescaler (PSC = 0)
 
-	uint32_t MAX_VAL = (uint32_t)(2 << (bits - 1)) - 1;
+    uint32_t MAX_VAL = (uint32_t)(2 << (bits - 1)) - 1;
 
-	while (settings.arr > MAX_VAL)
-	{
-		settings.arr /= 2;
-		settings.prescaler *= 2;
-	}
+    while (settings.arr > MAX_VAL)
+    {
+        settings.arr /= 2;
+        settings.prescaler *= 2;
+    }
 
-	settings.prescaler -= 1;
+    settings.prescaler -= 1;
 
-	return settings;
+    return settings;
 }
 
 static void EnableTimer(Timer* timer)

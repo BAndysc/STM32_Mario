@@ -52,7 +52,7 @@ static void InitADCForPin(ADCt* adc, Pin pin)
 
 void InitADC(ADCt* adc)
 {
-	adc->Ptr = 0;
+    adc->Ptr = 0;
     adc->numberOfChannels = 0;
 }
 

@@ -25,28 +25,28 @@ jednokierunkowa komunikacja: Master -> Slave, zatem pin MISO nie jest używany.
 typedef struct SPIt
 {
 
-	Pin Clock;
-	Pin MOSI;
-	Pin MISO; // not supported
+    Pin Clock;
+    Pin MOSI;
+    Pin MISO; // not supported
 
-	SPI_TypeDef* hardwareSPI;
-	DMAt dmaTX;
+    SPI_TypeDef* hardwareSPI;
+    DMAt dmaTX;
 
-	void (*writeAsync)(struct SPIt* spi, char* data, int length);
-	void (*writeSync)(struct SPIt* spi, char* data, int length);
-	void (*write8)(struct SPIt* spi, uint8_t data);
-	void (*write16)(struct SPIt* spi, uint16_t data);
+    void (*writeAsync)(struct SPIt* spi, char* data, int length);
+    void (*writeSync)(struct SPIt* spi, char* data, int length);
+    void (*write8)(struct SPIt* spi, uint8_t data);
+    void (*write16)(struct SPIt* spi, uint16_t data);
 
-	void (*onFinishedWrite)(void* data);
+    void (*onFinishedWrite)(void* data);
 
-	void* handlerData;
+    void* handlerData;
 
 } SPIt;
 
 typedef enum
 {
-	SPI_TRANSFER_SIZE_BYTE,
-	SPI_TRANSFER_SIZE_HALF_WORD
+    SPI_TRANSFER_SIZE_BYTE,
+    SPI_TRANSFER_SIZE_HALF_WORD
 } SPI_TransferSize;
 
 typedef enum

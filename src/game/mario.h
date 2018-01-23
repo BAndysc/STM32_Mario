@@ -4,14 +4,14 @@
 #include "gameobject.h"
 
 typedef struct Mario {
-	GameObject super;
+    GameObject super;
 
-	int Grounded;
+    int Grounded;
 
-	int Frame;
-	float FrameTime;
+    int Frame;
+    float FrameTime;
 
-	int Dead;
+    int Dead;
 } Mario;
 
 void InitMario(Mario* mario, int x, int y);

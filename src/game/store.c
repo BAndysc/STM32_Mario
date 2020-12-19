@@ -4,14 +4,20 @@
 Level* level = &Levels.level1;
 
 Mario mario;
+Flag flag;
 
 GameObject ObjectsStore[MAX_OBJECTS];
+GameObject* RenderObjects[1000];
 GameObject* Objects[1000];
 GameObject* UpdateLoop[250];
 GameObject* Colliders[1000];
 int ObjectsUpdateCounter = 0;
 int ObjectsCounter = 0;
 int ObjectsColliderCounter = 0;
+
+int POINTS;
+int WON;
+int LIVES;
 
 static int GameObjectStoreCounter = 0;
 

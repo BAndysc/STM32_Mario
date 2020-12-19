@@ -3,6 +3,8 @@
 
 USARTt* usart;
 
+uint8_t* JoystickInput;
+
 void Puts(char* message)
 {
     if (usart != nullptr)

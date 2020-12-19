@@ -1,9 +1,11 @@
 cmake_minimum_required(VERSION 3.6)
 project(mario)
 
+set(CMAKE_SYSTEM_NAME Generic)
+
 set(CMAKE_VERBOSE_MAKEFILE off)
 
-SET(CMAKE_C_COMPILER arm-eabi-gcc)
+SET(CMAKE_C_COMPILER arm-none-eabi-gcc)
 
 SET(CMAKE_C_FLAGS "-mthumb -mcpu=cortex-m4 -mfloat-abi=softfp -mfpu=fpv4-sp-d16 -Wall -g -DDMA -O2 -ffunction-sections -fdata-sections -Wno-trigraphs")
 
@@ -67,10 +69,10 @@ set(SOURCE_FILES
 
 add_executable(mario ${SOURCE_FILES})
 
-SET_TARGET_PROPERTIES(mario PROPERTIES LINK_FLAGS "-mthumb -mcpu=cortex-m4 -mfloat-abi=softfp -mfpu=fpv4-sp-d16 -Wl,--gc-sections -nostartfiles -L/opt/arm/stm32/lds -Tstm32f411re.lds")
+SET_TARGET_PROPERTIES(mario PROPERTIES LINK_FLAGS "-mthumb -mcpu=cortex-m4 -mfloat-abi=softfp -mfpu=fpv4-sp-d16 -Wl,--gc-sections -nostartfiles -L${CMAKE_CURRENT_SOURCE_DIR}/src/devices -Tstm32f411re.lds")
 
 SET_TARGET_PROPERTIES(mario PROPERTIES OUTPUT_NAME "mario.elf")
 
 add_custom_command(TARGET mario
     POST_BUILD
-    COMMAND arm-eabi-objcopy mario.elf mario.bin -O binary)
+    COMMAND arm-none-eabi-objcopy mario.elf mario.bin -O binary)

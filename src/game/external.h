@@ -11,7 +11,7 @@ void SetIn(USARTt* serial);
 
 void SetJoystick(uint8_t readings[]);
 
-uint8_t* JoystickInput;
+extern uint8_t* JoystickInput;
 
 typedef enum {
     JOYSTICK_INPUT_HORIZ,

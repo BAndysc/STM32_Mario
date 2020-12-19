@@ -8,20 +8,20 @@
 
 #define MAX_OBJECTS 500
 
-Level* level;
+extern Level* level;
 
-Mario mario;
+extern Mario mario;
 
-Flag flag;
+extern Flag flag;
 
-GameObject ObjectsStore[MAX_OBJECTS];
+extern GameObject ObjectsStore[MAX_OBJECTS];
 
-GameObject* RenderObjects[1000];
-GameObject* UpdateLoop[250];
-GameObject* Colliders[1000];
-int ObjectsUpdateCounter;
-int ObjectsCounter;
-int ObjectsColliderCounter;
+extern GameObject* RenderObjects[1000];
+extern GameObject* UpdateLoop[250];
+extern GameObject* Colliders[1000];
+extern int ObjectsUpdateCounter;
+extern int ObjectsCounter;
+extern int ObjectsColliderCounter;
 
 void AddObjectToStore(GameObject* object);
 
@@ -31,10 +31,10 @@ void ClearStore();
 
 GameObject* GetNewObject();
 
-int POINTS;
+extern int POINTS;
 
-int WON;
+extern int WON;
 
-int LIVES;
+extern int LIVES;
 
 #endif

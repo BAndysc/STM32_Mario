@@ -20,7 +20,7 @@ void UpdateInput();
 
 void ProcessInput(char const* recv, uint8_t len);
 
-int StartTicks;
+extern int StartTicks;
 
 extern int32_t MilisecondsSinceStart;
 #endif

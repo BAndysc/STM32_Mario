@@ -1,9 +1,9 @@
 #include "mario.h"
 #include "levels.h"
 #include "gfx.h"
-#include "../lcd.h"
+#include "lcd.h"
 #include "store.h"
-#include "../debug.h"
+#include "debug.h"
 #include "external.h"
 
 extern Vectorf input;

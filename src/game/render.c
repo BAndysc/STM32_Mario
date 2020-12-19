@@ -5,8 +5,8 @@
 #include "store.h"
 #include "input.h"
 #include "levels.h"
-#include "../debug.h"
-#include "../lcd.h"
+#include "debug.h"
+#include "lcd.h"
 
 int16_t SCALE = 2;
 #define INV(A) (A); //((A >> 8) | ((A & 0xFF) << 8))

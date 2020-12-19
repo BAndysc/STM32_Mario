@@ -1,6 +1,6 @@
 #include "game.h"
-#include "../adc.h"
-#include "../debug.h"
+#include "adc.h"
+#include "debug.h"
 #include "external.h"
 #include "gfx.h"
 #include "levels.h"

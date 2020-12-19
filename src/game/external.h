@@ -1,7 +1,7 @@
 #ifndef MARIO_EXTERNAL_H
 #define MARIO_EXTERNAL_H
 
-#include "../uart.h"
+#include "uart.h"
 
 void Puts(char* message);
 

@@ -4,10 +4,10 @@
 #include "uart.h"
 #include "adc.h"
 #include "debug.h"
-#include "game/external.h"
 #include "ILI9341.h"
-#include "game/game.h"
 #include "clock.h"
+#include "game.h"
+#include "external.h"
 
 #define US_IN_1_MILISECOND 1000
 #define UPDATE_TIMER_MS 30

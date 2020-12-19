@@ -53,7 +53,7 @@ IRQn_Type InterruptTypeToIRQnMap[] = {
 };
 
 // domyślny proponowany bit oznaczający wystąpienie danego przerwania
-static const uint32_t const InterruptCheckBits[] = {
+static const uint32_t InterruptCheckBits[] = {
     0,
     (1 << 0),
     (1 << 1),
@@ -101,7 +101,7 @@ static const uint32_t const InterruptCheckBits[] = {
 
 
 // domyślny proponowany bit oznaczający wystąpienie danego przerwania
-static const uint32_t const InterruptClearBits[] = {
+static const uint32_t InterruptClearBits[] = {
     0,
     (1 << 0),
     (1 << 1),

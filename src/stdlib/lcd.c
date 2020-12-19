@@ -1,7 +1,6 @@
 #include <fonts.h>
 #include <gpio.h>
 #include "lcd.h"
-#include "game/game.h"
 #include "debug.h"
 
 #define INV(A) ((((A) & 0xFF)<<8) | ((A) >> 8))

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.6)
+cmake_minimum_required(VERSION 3.12)
 project(mario)
 
 set(CMAKE_SYSTEM_NAME Generic)
@@ -13,61 +13,17 @@ SET(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS_INIT} -mthumb -mcpu=c
 
 set(CMAKE_CXX_STANDARD 11)
 
-include_directories(src/includes/inc src/includes/CMSIS/Include src/includes/CMSIS/Device/ST/STM32F4xx/Include/)
+include_directories(src/includes/inc src/stdlib src/includes/CMSIS/Include src/includes/CMSIS/Device/ST/STM32F4xx/Include/)
 
-add_definitions(-DSTM32F411xE)
+add_definitions(-DSTM32F411xE -DUSE_FLOATS)
 
-set(SOURCE_FILES
-        src/driver/fonts.c
-        src/driver/gpio.c
-        src/driver/startup_stm32_fpu.c
-        src/devices/stm32f411xe.c
-        src/game/game.c
-        src/game/game.h
-        src/game/gameobject.c
-        src/game/gameobject.h
-        src/game/gfx.c
-        src/game/gfx.h
-        src/game/input.c
-        src/game/input.h
-        src/game/levels.c
-        src/game/levels.h
-        src/game/mario.c
-        src/game/mario.h
-        src/game/render.c
-        src/game/render.h
-        src/game/store.c
-        src/game/store.h
-        src/game/vector.c
-        src/game/vector.h
-        src/adc.c
-        src/adc.h
-        src/clock.c
-        src/clock.h
-        src/debug.c
-        src/debug.h
-        src/device.h
-        src/dma.c
-        src/dma.h
-        src/interrupts.c
-        src/interrupts.h
-        src/lcd.c
-        src/lcd.h
-        src/main.c
-        src/pins.c
-        src/pins.h
-        src/queue.c
-        src/queue.h
-        src/spi.c
-        src/spi.h
-        src/timer.c
-        src/timer.h
-        src/uart.c
-        src/uart.h
-        src/ILI9341.c
-        src/ILI9341.h src/game/external.c src/game/external.h src/setup.c src/setup.h src/simple_watchdog.c src/simple_watchdog.h src/game/flag.c src/game/flag.h)
+file(GLOB_RECURSE SOURCE_FILES RELATIVE ${CMAKE_SOURCE_DIR} 
+        "src/game/*.c"
+        "src/stdlib/*.c"
+        "src/driver/*.c"
+        "src/devices/*.c")
 
-add_executable(mario ${SOURCE_FILES})
+add_executable(mario ${SOURCE_FILES} src/main.c)
 
 SET_TARGET_PROPERTIES(mario PROPERTIES LINK_FLAGS "-mthumb -mcpu=cortex-m4 -mfloat-abi=softfp -mfpu=fpv4-sp-d16 -Wl,--gc-sections -nostartfiles -L${CMAKE_CURRENT_SOURCE_DIR}/src/devices -Tstm32f411re.lds")
 

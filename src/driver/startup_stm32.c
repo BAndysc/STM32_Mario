@@ -1,3 +1,4 @@
+#ifndef USE_FLOATS
 /** Uniwersalna procedura startowa dla STM32 **/
 
 /* Następujące zmienne są zdefiniowane w skrypcie konsolidatora. */
@@ -39,3 +40,4 @@ static void Reset_Handler(void) {
 
 /* Włączany plik jest generowany automatycznie. */
 #include <interrupt_vector_stm32.c>
+#endif

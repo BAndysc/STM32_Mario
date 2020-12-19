@@ -1,3 +1,4 @@
+#ifdef USE_FLOATS
 #include <fpu.h>
 
 /** Uniwersalna procedura startowa dla STM32 **/
@@ -45,3 +46,4 @@ static void Reset_Handler(void) {
 
 /* Włączany plik jest generowany automatycznie. */
 #include <interrupt_vector_stm32.c>
+#endif

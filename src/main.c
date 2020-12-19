@@ -1,6 +1,6 @@
 #include "clock.h"
 #include "game/game.h"
-#include "setup.h"
+#include "game/setup.h"
 #include "simple_watchdog.h"
 
 int main()
